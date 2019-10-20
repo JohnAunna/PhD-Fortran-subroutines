@@ -2,49 +2,7 @@ c=======================================================================
       SUBROUTINE useplo(mat,mph,ifile)
 c=======================================================================
 c
-c     USEPLO IS A SPECIAL PURPOSE ROUTINE FOR GENERATING USER
-c     DEFINED OUTPUT
-c     ALL USER-SPECIFIED EXPRESSIONS MUST BE WRITTEN IN STANDARD
-c     FORTRAN 90 OR IN THE FORTRAN VERSION AVAILABLE ON YOUR MACHINE
-c     TO ACTIVATE THE STATEMENTS, PLEASE REMOVE THE 'C' FROM THE
-c     FIRST COLUMN
-c
-c     THIS ROUTINE WILL BE EXECUTED AT THE END OF CALCULATION
-c
-c     See the list of variables for the use of this routine
-c
-c.....contact cfd_support@avl.com
-c-----
-c-----------------------------------------------------------------------
-c-----NEWS
-c     ----
-c
-c     FROM VERSION FIRE V8.3 AND SWIFT 3.3 THE LABEL IMOD IS REMOVED
-c
-c-----NEW WAY TO PLOT USER-DEFINED DATA INTO THE fl3-FILE
-c     ---------------------------------------------------
-c
-c      1) allocate 2 dynamic arrays: one with dimension ncell
-c         the other with dimension nbfac
-c      2) store your user-defined quantity in these two arrays
-c      3) call the routine which will perform the work for you:
-c            WRITE_USER_FL3 (mat,mph,ifile,
-c                            Sname,Sunit,ncell,nbfac,
-c                            floatcell,floatbd)
-c          *the first 3 arguments are the same as USEPLO
-c          *Sname is a string containing the name of your data, 
-c                 as it will be displayed in IMPRESS
-c          *Sunit is a string containing the unit of your data,
-c                 displayed in IMPRESS as well
-c          *ncell and nbfac are the dimensions
-c          *floatcell and floatbd are the local arrays
-c       4) perform operations 1 to 3 for all your user data
-c       5) at the end deallocate the dynamic arrays
-c
-c
-c-----  SEE THE COMMENTED EXAMPLE
-c     
-c-----
+c     calculation of viscous term indirectly
 c-----------------------------------------------------------------------
 c-----
       USE comm0
