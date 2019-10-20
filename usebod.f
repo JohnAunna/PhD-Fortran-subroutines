@@ -1,5 +1,5 @@
 c------Convection term dropping
-c      author:Hamid Anazad    date:27 October 2015      
+c      author:John Aunna    date:27 October 2015      
 c      SUBROUTINE usebod(iconv,mph)       
 c
       SUBROUTINE usebod(mat,mph)                
