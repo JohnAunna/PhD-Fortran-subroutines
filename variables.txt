@@ -1,0 +1,2282 @@
+c-----
+c#######################################################################
+c#######################################################################
+c-----
+c=======================================================================
+c----- COM0
+c=======================================================================
+c-----
+      INTEGER :: ndo = Number of different domains {-}
+      INTEGER :: nte = Number of (transport) equations {-}
+      INTEGER :: nva = Number of variables {-}
+      INTEGER :: nou = Number of outlets (in one domain) {-}
+c-----      
+      INTEGER :: init  = integer constant {-}
+      INTEGER :: imos  = integer constant {-}
+      INTEGER :: imof  = integer constant {-}
+      INTEGER :: ippc  = integer constant {-}
+      INTEGER :: iphi  = integer constant {-}
+      INTEGER :: iphs  = integer constant {-}
+      INTEGER :: ipte  = integer constant {-}
+      INTEGER :: iped  = integer constant {-}
+      INTEGER :: ipu2  = integer constant {-}
+      INTEGER :: ipv2  = integer constant {-}
+      INTEGER :: ipw2  = integer constant {-}
+      INTEGER :: ipuv  = integer constant {-}
+      INTEGER :: ipuw  = integer constant {-}
+      INTEGER :: ipvw  = integer constant {-}
+      INTEGER :: ipvit = integer constant {-}
+      INTEGER :: ipvf  = integer constant {-}
+      INTEGER :: ipvis = integer constant {-}
+      INTEGER :: ipden = integer constant {-}
+c-----     
+      INTEGER :: ini = integer constant {-}
+      INTEGER :: ius = integer constant {-}
+      INTEGER :: ivs = integer constant {-}
+      INTEGER :: iws = integer constant {-}
+c-----     
+      INTEGER :: iuf  = integer constant {-}
+      INTEGER :: ivf  = integer constant {-}
+      INTEGER :: iwf  = integer constant {-}
+      INTEGER :: ipr  = integer constant {-}
+      INTEGER :: iph  = integer constant {-}
+      INTEGER :: ipho = integer constant {-}
+      INTEGER :: ihs  = integer constant {-}
+      INTEGER :: ite  = integer constant {-}
+      INTEGER :: ied  = integer constant {-}
+c-----      
+      INTEGER :: iu2  = integer constant {-}
+      INTEGER :: iv2  = integer constant {-}
+      INTEGER :: iw2  = integer constant {-}
+      INTEGER :: iuv  = integer constant {-}
+      INTEGER :: iuw  = integer constant {-}
+      INTEGER :: ivw  = integer constant {-}
+      INTEGER :: ivit = integer constant {-}
+      INTEGER :: ivvf = integer constant {-}
+      INTEGER :: igam = integer constant {-}
+      INTEGER :: ide  = integer constant {-}
+      INTEGER :: iuo  = integer constant {-}
+      INTEGER :: ivo  = integer constant {-}
+      INTEGER :: iwo  = integer constant {-}
+      INTEGER :: ifl  = integer constant {-}
+c-----      
+      COMMON/DIME/ nfmax = nface (for rezone) {-}
+                   npmax = ncell (for rezone) {-}
+                   nbmax = nbfac (for rezone) {-}
+                   nrmax = nreg (for rezone) {-}
+                   nsmax = currently not used {-}
+                   ntmax = currently not used {-}
+                   msin  = number of phases {-}
+c-----      
+      COMMON/RAL1/ great          = real constant {-}
+                   small          =  real constant {-}
+                   zero           =  real constant {-}
+                   dt             = time-step size {s}
+                   dtin           = time-step size (dtin=1/dt) {1/s}
+                   time           = current time {s}
+                   tref(ndo)      = reference temperature {K}
+                   gasref(ndo)    = reference gas constant {J/kg/K}
+                   urf(ndo,0:nte) = under-relaxation factor (0 to 1) (mat,ieq)
+                   rno(ndo,0:nva) = normalised residual {-} (mat,iva)
+                   sot(ndo,0:nte) = solver tolerance {-} (mat,ieq)
+                   rnmax          = currently not used {-}
+                   dim(6)         = temporarily domain dimensions {-}
+                   denr(ndo)      = reference density {kg/m3} (mat)
+                   gamr(ndo)      = reference scalar diffusivity {W/m/K} (mat)
+                   vism(ndo)      = reference molecular viscosity {PAs} (mat)
+                   pref(ndo)      = reference pressure {Pa} (mat)
+                   fsplit(ndo)    = currently not used {-}
+                   res0           = currently not used {-}
+                   fvin(ndo)      = inflow at given velocity boundary conditions {kg/s} (mat)
+                   rnf(ndo,0:nva) = residual normalisation factor {-} (mat,iva)
+                   umax(ndo)      = currently not used {-}
+                   blf(ndo,15)    = blending factor (0 -> UD, 1 -> CD) {-} (mat,ieq)
+                   symfac         = constant for symmetry planes {-}
+                   cpr(ndo)       = specific heat capacity for multi-phase {J/kg}
+                   c1             = real constant {-} 
+                   c2             = real constant {-} 
+                   c4             = real constant {-} 
+                   prte           = real constant {-} 
+                   pred           = real constant {-} 
+                   cmu            = real constant {-} 
+                   cmu25          = real constant {-} 
+                   cmu75          = real constant {-} 
+                   elog           = real constant {-}
+                   yptr           = real constant {-}
+                   cappa          = real constant {-}
+                   cm10           = real constant {-} 
+                   prtemp         = real constant {-} 
+                   cm0            = real constant {-} 
+                   gkappa         = real constant {-} 
+                   cs             = real constant (RSM constant) {-}
+                   ce             = real constant (RSM constant) {-}
+                   cr1            = real constant (RSM constant) {-}
+                   cr1s           = real constant (RSM constant) {-}
+                   cr2            = real constant (RSM constant) {-}
+                   cr3            = real constant (RSM constant) {-}
+                   cr3s           = real constant (RSM constant) {-}
+                   cr4            = real constant (RSM constant) {-}
+                   cr5            = real constant(RSM constant) {-}
+                   one            = real constant {-}
+                   c1one          = real constant {-}
+                   c2one          = real constant {-}
+                   clen           = length scale {m}
+                   cmu05          = sqrt(cmu) {-}
+                   pave           = avarage pressure at boundaries {Pa}
+                   presin         = initial pressure {Pa}
+                   urmass         = Underellaxation of mass source {-}
+                   urvist         = Underellaxation of turbulent viscosity {-}
+                   pref_old(ndo)  = old time-step reference pressure {Pa}
+c-----
+      COMMON/REA1/ uin(ndo)   = initial velocity in x-direction {m/s}
+                   vin(ndo)   = initial velocity in y-direction {m/s}
+                   win(ndo)   = initial velocity in z-direction {m/s}
+                   pin(ndo)   = initial pressure {Pa}
+                   phiin(ndo) = initial value of scalar {-}
+                   vers       = version number {-}
+                   hsin(ndo)  = initial value of scalar {-}
+                   tein(ndo)  = initial turbulence kinetic energy {m2/s2}
+                   edin(ndo)  = initial dissipation rate {m2/s3}
+c-----
+      COMMON/MPH1/ vfrmin   = Minimum volume fraction (multi-phase, 1.0e-6) {-}
+                   fdt(50)  = currently not used {-}
+      COMMON/MPH2/ nai(nte) = number of active interfaces for nte-equation {-}
+                   nid      = number of possible interfaces between phases {-}
+                   ndt      = currently not used {-}
+                   idt(50)  = currently not used {-}
+c-----      
+      COMMON/RCONV/ r_convcrit(1:6) = convergence criterion value {-}
+                    r_xgravity      = x Gravity value {m/s2}
+                    r_ygravity      = y Gravity value {m/s2}
+                    r_zgravity      = z Gravity value {m/s2}
+      COMMON/ICONV/ i_convact(1:6)  = activation flag for convergence criterion {-}
+                    i_gravact       = activation flag for gravity {-}
+c-----      
+      COMMON/INTE/ iutot         = currently not used {-}
+                   ncell         = number of cells {-}
+                   nface         = number of cell-faces {-}
+                   nbfac         = number of boundary faces {-}
+                   ncfac         = currently not used {-}
+                   nreg          = number of boundary regions (+ region ) {-}
+                   iter          = current iteration number {-}
+                   iters         = starting iteration number {-}
+                   maxit         = maximum number of iterations {-}
+                   nit(ndo,0:15) = number of inner iterations {-} (mat,ieq)
+                   ndf           = data dump frequency {-}
+                   ipmon         = monitoring cell {-}
+                   nkbyts        = number of bytes (for memory allocation) {-}
+                   npf           = currently not used {-}
+                   nmeq          = number of vector equations to be solved {-}
+                   npro          = number geometrical data {-}
+                   ih            = currently not used (file number, multi-phase) {-}
+                   ndr           = restart output flag {-}
+                   ndb           = backup output flag {-}
+                   iexto         = extrapolation flag {-}
+                   nmat          = toatal number of materials {-}
+                   ils(ndo)      = currently not used {-}
+                   iue(ndo)      = currently not used {-}
+                   nsp(ndo)      = starting number of cells {-}
+                   nep(ndo)      = ending number of cells {-}
+                   nsf(ndo)      = starting number of faces {-}
+                   nef(ndo)      = ending number of faces {-}
+                   nsb(ndo)      = starting number of boundaries {-}
+                   neb(ndo)      = ending number of boundaries {-}
+                   iprb(ndo)     = used in development {-}
+                   ipref(ndo)    = reference pressure location {-} (mat)
+                   nout(ndo)     = currently not used {-}
+                   icphop(ndo)   = currently not used {-}
+                   ivisop(ndo)   = user coding molecular viscosity flag {-}
+                   idenop(ndo)   = user coding density flag {-}
+                   itst          = time-step counter {-}
+                   maxtst        = maximum time-step (currently not used) {-}
+                   itsts         = time-step number {-}
+                   isolv         = currently not used {-}
+                   igraop        = index for calculation of derivatives {-}
+                   idatim(6)     = currently not used {-}
+                   igamop(ndo)   =
+                   nstop         = calculation stop flag {-}
+                   ltur          = turbulence solver flag {-}
+                   icomp         = compressibility solver flag {-}
+                   ltemp         = temperature solver flag {-}
+                   lstart        = start iteration {-}
+                   nrsm          = currently not used {-}
+                   limrs         = currently not used {-}
+                   ltrsm         = start iteration for RSM {-}
+                   lcomp         = icomp (one equation model) {-}
+                   indf          = index for writing restart file {-}
+                   nsizm         = Array size used for restart {-}
+                   lmov          = checking flag if moving walls are considered {-}
+                   md01          = nface (dynamic memory for multi-phase) {-}
+                   md02          = ncell (dynamic memory for multi-phase) {-}
+                   md03          = nbfac (dynamic memory for multi-phase) {-}
+                   md04          = currently not used {-}
+                   md05          = currently not used {-}
+                   md06          = currently not used {-}
+                   md07          = currently not used {-}
+                   md08          = currently not used {-}
+                   md09          = currently not used {-}
+                   md10          = currently not used {-}
+                   icont1        = index for total number of iterations {-}
+                   ifir          = activation flag in porosity {-}
+                   lmptur        = ltur (one equation model) {-}
+                   itrtur        = activation flag in porosity {-}
+c-----
+      COMMON/MACH/  pswitch =                    {-}
+      COMMON/MOVE/  nvert   = number of vertices {-}
+c-----
+      INTEGER :: igmove = activation flag for moving grid {-}
+      INTEGER :: irezon = activation flag for rezone {-}
+c-----
+      DOUBLE PRECISION :: fblock(0:100)  = block number {-}
+      DOUBLE PRECISION :: fblocko(0:100) = old time-step block number {-} 
+c-----
+      COMMON /PORO/ tepor(50) = turbulence kinetic energy for porosity (currently not used ) {m2/s2}
+                    edpor(50) = disspation rate for porosity (currently not used ) {m2/s3}
+                    vfpor(50) = volume fraction for porosity {-}
+                    dh(50)    = hydraulic diameter of current block [m] 
+                    shape(50) = porosity shape factor {-}
+                    xpori(50) = data for the calculation of the block size in porosity {-}
+                    ypori(50) = data for the calculation of the block size in porosity {-}
+                    zpori(50) = data for the calculation of the block size in porosity {-}
+                    xporo(50) = data for the calculation of the block size in porosity {-}
+                    yporo(50) = data for the calculation of the block size in porosity {-}
+                    zporo(50) = data for the calculation of the block size in porosity {-}
+c------
+      COMMON /PORO1/ zeta(50)   = value in porosity {-}
+                     alpha1(50) = alpha coefficient for general porosity {-}
+                     alpha2(50) = alpha coefficient for general porosity {-}
+                     alpha3(50) = alpha coefficient for general porosity {-}
+                     dirp1(50)  = porosity direction for 'AUTO' option {-}
+                     dirp2(50)  = porosity direction for 'AUTO' option {-}
+                     dirp3(50)  = porosity direction for 'AUTO' option {-}
+                     facpor(50) = initialisation of porosity {-}
+                     sumpi(50)  = initialisation of porosity {-}
+                     sumpo(50)  = initialisation of porosity {-}
+                     areai(50)  = initialisation of porosity {-}
+                     areao(50)  = initialisation of porosity {-}
+                     rvec(50)   = rotation vector in porosity {-}
+c------
+      COMMON /PORO2/ tcool(50) = currently not used {-}
+                     bepor(50) = currently not used {-}
+                     deltp     = currently not used {-}
+c------
+      COMMON /PORO3/ itypor(50) = porosity activation flag {-}
+                     lmet(50)   = currently not used {-}
+                     lmpor      = currently not used {-}
+c-----
+      INTEGER resta          = restart activation flag {-}
+      INTEGER reset          = currently not used {-}
+      INTEGER twod           = 2-dimensional activation flag {-}
+      INTEGER trans          = transient activation flag {-}
+      INTEGER itest          = currently not used {-}
+      INTEGER dsc(ndo,nte)   = differencing scheme {-} (mat,ieq)
+      INTEGER itc_mode       = time contoling mode activation (steady,time,crank-angle {-}
+      INTEGER inito(ndo)     = currently not used {-}
+      INTEGER sol(ndo,0:nte) = number of equations to be solved for each domain {-} (mat,ieq)
+      INTEGER soltot(0:nte)  = solution flags in complete computational domain {-}
+      INTEGER diverg         = currently not used {-}
+c-----
+      COMMON/LOGIcal/ lwarn       = warning string (true, false) {-}
+                      prball(ndo) =
+                      solg(0:15)  = number of equations to be solved for all domains {-} (ieq)
+                      lphase      = multi-pahse activation string {-}
+                      lpea        = activation of partial elimination algorithm (PEA) {-}
+                      lvof        = activation of volume of fluid (VOF) model {-}
+c-----
+      CHARACTER(LEN=4)   :: neq(0:12)   = name of equation being solved (u,v,w,phi,...) {-} (iva)
+      CHARACTER(LEN=52)  :: title       = currently not used {-}
+      CHARACTER(LEN=200) :: probna      = old parameter (should be removed) {-}
+      CHARACTER(LEN=8)   :: matnam(NDO) = currently not used, material name string array {-}
+c-----
+      REAL :: rmmass  = total mass in geometry {kg}
+      REAL :: rmdens  = mean volume averaged density in geometry {kg/m3}
+      REAL :: rmtemp  = mean volume averaged temperature in geometry {K}
+      REAL :: rmpress = mean volume averaged pressure in geometry {Pa}
+      REAL :: rairpur = currently not used (for passive scalar) {-}
+      REAL :: rflowin = mean volume averaged inlet flow {kg/s}
+      REAL :: rflowex = mean volume averaged outlet flow {kg/s}
+      REAL :: renthin = mean volume averaged inlet enthalpy {J/kg}
+      REAL :: renthex = mean volume averaged outlet enthalpy {J/kg}
+      REAL :: rhwall  = mean volume averaged wall heatflux {W}
+c-----
+      DOUBLE PRECISION :: timo  = old time {s}
+      DOUBLE PRECISION :: timoo = old old time {s}
+      DOUBLE PRECISION :: dtnw  = new time step {s}
+      DOUBLE PRECISION :: dto   = old time step {s}
+      DOUBLE PRECISION :: dtoo  = old old time step {s}
+      DOUBLE PRECISION :: ttl   = '1/dt' different for different time schemes {1/s}
+      DOUBLE PRECISION :: ttlo  = old time-step ('1/dt') different for different time schemes {1/s}
+      DOUBLE PRECISION :: ttloo = old old time-step ('1/dt') different for different time schemes {1/s}
+c-----
+      CHARACTER(LEN=128) :: errmes = error message string {-}
+c-----
+      DOUBLE PRECISION :: eperd(3) = vector direction for periodic boundary {-}
+      DOUBLE PRECISION :: pdrop    = pressure drop (0.0) {Pa}
+      DOUBLE PRECISION :: ppdrop   = linear pressure drop correction (periodic boundary) {Pa}
+      DOUBLE PRECISION :: fbper    = mass flow rate (0.0) {-}
+      DOUBLE PRECISION :: urfper   = under-relaxation factor for periodic boundary (0.2) {-}
+      DOUBLE PRECISION :: absum    =        (periodic boundary) {-}
+      DOUBLE PRECISION :: tbper1   = bulk temperature for periodic boundary (293.15) {-}
+      DOUBLE PRECISION :: tbper2   = bulk temperature for periodic boundary (293.15) {-}
+      DOUBLE PRECISION :: tdrop    = temperature drop (0.0) {K}
+c-----
+      COMMON /ENGINE/  crank  = currently not used {-}
+                       crank1 = start crank-angle {deg.}
+                       crank2 = end crank-angle {deg.}
+                       rpmcra = engine speed {rpm}
+c-----
+      COMMON /ICM001/ imodel  = catalyst activation flag {-}
+                      ispray  = spray activation flag {-}
+                      icmbfl  = combustion activation flag {-}
+                      ithchm  = thermochemistry activation flag {-}
+                      iwfilm  = wall film activation flag {-}
+                      imod1d  = 1D interface activation flag {-}
+     X                iheat1d = 1D wall heat transfer activation flag {-}
+                      ideice  = de-iceing activation flag {-}
+c-----
+      COMMON /PP01/ r_pp_01 = currently not used {-}
+                    r_pp_02 = currently not used {-}
+c-----
+      COMMON /PP02/ i_pp_01 = currently not used {-}
+                    i_pp_02 = currently not used {-}
+c-----------------------------------------------------------------------
+c----- time management
+c-----------------------------------------------------------------------
+      INTEGER :: i_out_pres    = pressure output flag (time-management) {-}
+      INTEGER :: i_out_velo    = velocity output flag (time-management) {-}
+      INTEGER :: i_out_dens    = density output flag (time-management) {-}
+      INTEGER :: i_out_temp    = temperature output flag (time-management) {-}
+      INTEGER :: i_out_turb    = turbulence output flag (time-management) {-}
+      INTEGER :: i_out_visc    = viscosity output flag (time-management) {-}
+      INTEGER :: i_out_scal    = passive scalar output flag (time-management) {-}
+      INTEGER :: i_out_vort    = vorticy output flag (time-management) {-}
+      INTEGER :: i_out_erro    = error output flag (time-management) {-}
+      INTEGER :: i_written_flb = binary log-file writing flag {-}
+      INTEGER :: i_written_fl3 = flo-file writing flag {-}
+c-----
+      INTEGER :: i_min_iter = minimum number of iterations {-}
+      INTEGER :: i_global   = global continuity activation flag {-}
+      INTEGER :: i_species  = species type activation flag {-}
+      INTEGER :: i_one_equ  = one equation activation flag {-}
+c-----
+      INTEGER :: i_solv_type(ndo,0:nte) = solver type activation flag {-}
+      INTEGER :: i_solv_min(ndo,0:nte)  = minimum solver iteration {-}
+c-----
+      INTEGER :: i_usebnd = user coding boundary flag {-}
+      INTEGER :: i_usebod = user coding body force flag {-}
+      INTEGER :: i_usecon = user coding scalar diffusivity flag {-}
+      INTEGER :: i_usecps = user coding specific heat flag {-}
+      INTEGER :: i_useden = user coding density flag {-}
+      INTEGER :: i_useent = user coding enthalpy flag {-}
+      INTEGER :: i_useini = user coding initialisation flag {-}
+      INTEGER :: i_useite = user coding iteration flag {-}
+      INTEGER :: i_usemas = user coding mass flag {-}
+      INTEGER :: i_usemon = user coding monitoring flag {-}
+      INTEGER :: i_useout = user coding output flag {-}
+      INTEGER :: i_usepsc = user coding passive scalar flag {-}
+      INTEGER :: i_usetim = user coding time-management flag {-}
+      INTEGER :: i_usevis = user coding molecular viscosity flag {-}
+      INTEGER :: i_usemph = user coding multi-phase flag {-}
+c-----
+      INTEGER :: i_crankmode = crank-angle mode activation flag {-}
+c-----
+      REAL :: r_fileflag(10) = fblock()
+      REAL :: r_ini_scal     = initial passive scalar value {-}
+      REAL :: r_underf_mass  = underrelaxation factor for mass {-}
+      REAL :: r_underf_visc  = underrelaxation factor for viscosity {-}
+c-----
+      REAL :: r_act_rez(100) = currently not used {-}
+      REAL :: r_geo_rez(100) = currently not used {-}
+      REAL :: r_lnk_rez(100) = currently not used {-}
+      REAL :: r_bnd_rez(100) = currently not used {-}
+c-----
+      CHARACTER(LEN=512) :: c_filen_tim   = time-management file name string {-}
+      CHARACTER(LEN=512) :: c_filen_geo   = geometry file name string {-}
+      CHARACTER(LEN=512) :: c_filen_lnk   = link file name string {-}
+      CHARACTER(LEN=512) :: c_filen_bnd   = boundary file name string {-}
+      CHARACTER(LEN=512) :: c_filen_flo   = flo file name string {-}
+      CHARACTER(LEN=512) :: c_filen_rst   = restart file name string {-}
+      CHARACTER(LEN=512) :: c_filen_bck   = backup file name string {-}
+      CHARACTER(LEN=512) :: c_filen_chk   = checking file name string {-}
+      CHARACTER(LEN=512) :: c_filen_slm   = sliding mesh file name string {-}
+      CHARACTER(LEN=512) :: c_filen_mph   = multi-phase file name string {-}
+      CHARACTER(LEN=512) :: c_filen_spr   = spray file name string {-}
+      CHARACTER(LEN=512) :: c_filen_cmb   = combustion file name string {-}
+      CHARACTER(LEN=512) :: c_filen_thc   = thermochemistry file name string {-}
+      CHARACTER(LEN=512) :: c_filen_spc   = species file name string {-}
+      CHARACTER(LEN=512) :: c_filen_wfm   = wall film file name string {-}
+      CHARACTER(LEN=8)   :: c_solver_name = solver name string {-}
+      CHARACTER(LEN=8)   :: c_solver_vers = solver version string {-}
+c-----------------------------------------------------------------------
+c----- common blocks
+c-----------------------------------------------------------------------
+      COMMON /IO07/ r_act_spr = spray activation flag (currently not used ) {-}
+                    r_act_cmb = combustion activation flag (currently not used ) {-}
+                    r_act_thc = thermochemistry activation flag (currently not used ) {-}
+                    r_act_spc = species activation flag (currently not used ) {-}
+                    r_act_wfm = wall film activation flag (currently not used ) {-}
+c-----
+      COMMON /IO08/ r_chri_1 = currently not used {-}
+                    r_chri_2 = currently not used {-}
+c-----
+      COMMON /IO09/ r_time    = time step {-}
+                    r_tint    = currently not used {-}
+                    r_tend    = currently not used {-}
+                    r_act_frb = currently not used {-}
+                    r_end_blk = currently not used {-}
+c-----
+      COMMON /IO10/ i_act_flo = currently not used {-}
+                    i_act_rst = currently not used {-}
+                    i_act_bck = currently not used {-}
+                    i_ntim    = currently not used {-}
+                    i_nfrb    = currently not used {-}
+                    i_finc    = currently not used {-}
+                    i_rinc    = currently not used {-}
+                    i_binc    = currently not used {-}
+                    i_nrez    = currently not used {-}
+c-----
+      CHARACTER(LEN=512) :: c_filen_por = porosity file name string {-}
+      CHARACTER(LEN=512) :: c_filen_m3d = 3D model file name string {-}
+c-----
+      INTEGER :: i_controlflag(200) = integer controlling flag {-}
+      INTEGER :: i_slidingflg       = sliding mesh flag {-}
+      INTEGER :: islidf             = sliding mesh activation flag {-}
+c-----
+      REAL :: r_controlvalue1(200) = real controlling values {-}
+      REAL :: r_controlvalue2(200) = real controlling values {-}
+      REAL :: r_controlvalue3(200) = real controlling values {-}
+c-----
+      DOUBLE PRECISION :: rpmxa1(50) = currently not used {-}
+      DOUBLE PRECISION :: rpmya1(50) = currently not used {-}
+      DOUBLE PRECISION :: rpmza1(50) = currently not used {-}
+      DOUBLE PRECISION :: rpmxa2(50) = currently not used {-}
+      DOUBLE PRECISION :: rpmya2(50) = currently not used {-}
+      DOUBLE PRECISION :: rpmza2(50) = currently not used {-}
+      DOUBLE PRECISION :: xcorax(50) = x coordinate for rotation axis (sliding mesh) {m}
+      DOUBLE PRECISION :: ycorax(50) = y coordinate for rotation axis (sliding mesh) {m}
+      DOUBLE PRECISION :: zcorax(50) = z coordinate for rotation axis (sliding mesh) {m}
+      DOUBLE PRECISION :: rpm(50)    = currently not used {-}
+      DOUBLE PRECISION :: axx(50)    = rotation x axis (sliding mesh) {m}
+      DOUBLE PRECISION :: axy(50)    = rotation y axis (sliding mesh) {m}
+      DOUBLE PRECISION :: axz(50)    = rotation z axis (sliding mesh) {m}
+c-----
+      INTEGER :: npcor  = Number of pressure correction steps {-}
+      INTEGER :: ihosop = Options for bounded convection schemes {-}
+      INTEGER :: iperb  = periodic boundary conditio type {-}
+      LOGICAL :: lporo  = porosity string {-}
+      LOGICAL :: lmovg  = currently not used string {-}
+      LOGICAL :: ltherm =
+      LOGICAL :: outmem = currently not used string {-}
+c-----
+      INTEGER :: icross = Cell face adjusted flag (yes,no) {-}  ?????
+      INTEGER :: numslm = number of sliding mesh parts {-}
+c-----
+      CHARACTER(LEN=256) :: sliblo(100)        = sliding block name string {-}
+      CHARACTER(LEN=256) :: c_slidingname(100) = sliding file name string {-}
+c-----
+      DOUBLE PRECISION   :: r_slidingpara(360) = sliding mode parameter {-}
+c-----------------------------------------------------------------------
+c----- logical switches for runmode
+c-----------------------------------------------------------------------
+      LOGICAL :: l_single = single mode string {-}
+      LOGICAL :: l_mpi    = mpi mode string {-}
+      LOGICAL :: ldedom   = domain decomposition mode string {-}
+      LOGICAL :: lparal   = parallel mode string {-}
+      LOGICAL :: lout_ssf = string for ssf-file output {-}
+      LOGICAL :: lout_mph = string for multi-phase-file output {-}
+      LOGICAL :: lout_bc  = string for boundary condition-file output {-}
+      LOGICAL :: lout_mai = string for model activation {-} ??????????????????????
+c-----------------------------------------------------------------------
+c----- variables for parallel version
+c-----------------------------------------------------------------------
+      INTEGER :: nsbuf(0:1023) = starting number of buffer {-}
+      INTEGER :: nebuf(0:1023) = ending number of buffer {-}
+      INTEGER :: nsumc         = total sum of internal cells {-}
+      INTEGER :: iampro        =
+      INTEGER :: numbuf        = number of buffers {-}
+      INTEGER :: imonpr        = monitoring processor {-}
+      INTEGER :: irefpr(ndo)   = reference pressure processor {-}
+      INTEGER :: numpro        =
+c-----
+c=======================================================================
+c-----end of COM0
+c=======================================================================
+c-----
+c#######################################################################
+c#######################################################################
+c-----
+c=======================================================================
+      MODULE comm1
+c=======================================================================
+c-----
+      DOUBLE PRECISION :: auxb(nbfac)   = wall heat flux {m3/s}
+      DOUBLE PRECISION :: sp1(ncell)    = coefficient in the linearised source term {-}
+      DOUBLE PRECISION :: sp2(ncell)    = coefficient in the linearised source term {-}
+      DOUBLE PRECISION :: sp3(ncell)    = coefficient in the linearised source term {-}
+      DOUBLE PRECISION :: app(ncell)    = central point coefficient {-}
+      DOUBLE PRECISION :: phi(ncell)    = passive scalar {-}
+      DOUBLE PRECISION :: phib(nbfac)   = passive scalar at boundaries {-}
+      DOUBLE PRECISION :: gamma(ncell)  = thermal conductivity {W/m/K}
+      DOUBLE PRECISION :: cmucal(ncell) = constant in eddy viscosity (0.09) {-}
+      DOUBLE PRECISION :: vim(ncell)    = molecular viscosity {Pas}
+      DOUBLE PRECISION :: dif(ncell)    = diffusion transport coefficient {-}
+      DOUBLE PRECISION :: difb(nbfac)   = diffusion transport coefficient at boundaries {-}
+      DOUBLE PRECISION :: hs(ncell)     = total enthalpy {J/kg}
+      DOUBLE PRECISION :: hsb(nbfac)    = total enthalpy at boundaries {J/kg}
+      DOUBLE PRECISION :: hso(ncell)    = old time-step total enthalpy {J/kg}
+      DOUBLE PRECISION :: hsoo(ncell)   = old old time-step total enthalpy {J/kg}
+      DOUBLE PRECISION :: t(ncell)      = temperature {K}
+      DOUBLE PRECISION :: tb(nbfac)     = temperature at boundaries {K}
+      DOUBLE PRECISION :: vit(ncell)    = turbulent viscosity {Pas}
+      DOUBLE PRECISION :: cpcof(ncell)  = specific heat capacity {J/kg/K}
+      DOUBLE PRECISION :: cpcofb(nbfac) = specific heat capacity at boundaries {J/kg/K}
+      DOUBLE PRECISION :: vitb(nbfac)   = turbulent viscosity at boundaries {Pas}
+      DOUBLE PRECISION :: rgas(ncell)   = gas constant {J/kg/K}
+      DOUBLE PRECISION :: rgasb(nbfac)  = gas constant at boundaries {J/kg/K}
+      DOUBLE PRECISION :: ptotb(nbfac)  = total pressure at boundaries {Pa}
+      DOUBLE PRECISION :: phio(ncell)   = old time-step scalar {-}
+      DOUBLE PRECISION :: deno(ncell)   = old time-step density {kg/m3}
+c-----
+      DOUBLE PRECISION :: pp(ncell)   = pressure correction {Pa}
+      DOUBLE PRECISION :: ppb(nbfac)  = pressure corrections at boundary {Pa}
+      DOUBLE PRECISION :: p(ncell)    = pressure {Pa}
+      DOUBLE PRECISION :: pb(nbfac)   = pressure at boundaries {Pa}
+      DOUBLE PRECISION :: u(3,ncell)  = velocity {m/s}
+      DOUBLE PRECISION :: ub(3,nbfac) = velocity at boundaries {m/s}
+      DOUBLE PRECISION :: den(ncell)  = density {kg/m3}
+      DOUBLE PRECISION :: denb(nbfac) = density at boundaries {kg/m3}
+c-----
+      INTEGER :: lf(2,nface) = cell connectivity {-}
+      INTEGER :: lb(nbfac)   = boundary connectivity {-}
+c-----
+      DOUBLE PRECISION :: svol(:)     = currently not used {-}
+      DOUBLE PRECISION :: af(2,nface) = convection coefficients {-}
+      DOUBLE PRECISION :: wf(nface)   = weighting factors {-}
+      DOUBLE PRECISION :: d(3,nface)  = vector joining cell centres {m}
+      DOUBLE PRECISION :: db(3,nbfac) = vector joining cell and boundary centres {m}
+      DOUBLE PRECISION :: s(3,nface)  = surface vector (internal cell faces) {m2}
+      DOUBLE PRECISION :: sb(3,nbfac) = surface vector (boundary cell faces) {m2}
+      DOUBLE PRECISION :: xp(3,ncell) = cell centre coordinates {m}
+      DOUBLE PRECISION :: xb(3,nbfac) = boundary face centre coordinates {m}
+      DOUBLE PRECISION :: vol(ncell)  = volume {m3}
+      DOUBLE PRECISION :: volo(ncell) = old time-step volume {m3}
+      DOUBLE PRECISION :: f(nface)    = convective flux (internal cell faces) {m3/s}
+      DOUBLE PRECISION :: fb(nbfac)   = convective flux (boundary cell faces) {m3/s}
+      DOUBLE PRECISION :: g1(3,ncell) = gradient u component and scalars {1/m}
+      DOUBLE PRECISION :: g2(3,ncell) = gradient v component and scalars {1/m}
+      DOUBLE PRECISION :: g3(3,ncell) = gradient w component and scalars {1/m}
+      DOUBLE PRECISION :: dm(6,ncell) = gradient matrix used in 'least square' method {-}
+c-----
+      INTEGER :: ibc(10,0:nreg) = boundary type definition {-}
+      INTEGER :: bcuser(:)      = boundary condition user flag (currently not used ) {-}
+      INTEGER :: nsr(0:nreg)    = boundary node starting number {-}
+      INTEGER :: ner(0:nreg)    = boundary node ending number {-}
+      INTEGER :: nfpl(ncell)    = collecting faces facing cells on lower side of solution matrix {-}
+      INTEGER :: nfpu(ncell)    = collecting faces facing cells on upper side of solution matrix {-}
+c-----------------------------------------------------------------------
+c-----solver
+c-----------------------------------------------------------------------
+      INTEGER :: lfpl(nface) = collecting faces facing cells on lower side of solution matrix {-}
+      INTEGER :: lfpu(nface) = collecting faces facing cells on upper side of solution matrix {-}
+c-----
+      DOUBLE PRECISION :: uo(3,ncell)  = old time-step velocity {m/s}
+      DOUBLE PRECISION :: po(ncell)    = old time-step pressure {Pa}
+      DOUBLE PRECISION :: uoo(3,ncell) = old old time-step velocity {m/s}
+      DOUBLE PRECISION :: phioo(ncell) = old old time-step scalar {-}
+c-----------------------------------------------------------------------
+c------k-e model
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: te(ncell)     = turbulence kinetic energy {m2/s2}
+      DOUBLE PRECISION :: teb(nbfac)    = turbulence kinetic energy at boundaries {m2/s2}
+      DOUBLE PRECISION :: ed(ncell)     = dissipation rate {m2/s3}
+      DOUBLE PRECISION :: edb(nbfac)    = dissipation rate at boundaries {m2/s3}
+      DOUBLE PRECISION :: teo(ncell)    = old time-step turbulence kinetic energy {m2/s2}
+      DOUBLE PRECISION :: edo(ncell)    = old time-step dissipation rate {m2/s3}
+      DOUBLE PRECISION :: teoo(ncell)   = old old time-step turbulence kinetic energy {m2/s2}
+      DOUBLE PRECISION :: edoo(ncell)   = old old time-step dissipation rate {m2/s3}
+      DOUBLE PRECISION :: gen(ncell)    = production of turbulence kinetic energy {W/m3}
+      DOUBLE PRECISION :: genwal(nbfac) = production of turbulence kinetic energy at wall {W/m3}
+      DOUBLE PRECISION :: poo(ncell)    = old old tiem-step pressure {Pa}
+c-----------------------------------------------------------------------
+c------rsm
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: u2(ncell)    = u2 stress {N/m2}
+      DOUBLE PRECISION :: v2(ncell)    = v2 stress {N/m2}
+      DOUBLE PRECISION :: w2(ncell)    = w2 stress {N/m2}
+      DOUBLE PRECISION :: uv(ncell)    = uv stress {N/m2}
+      DOUBLE PRECISION :: uw(ncell)    = uw stress {N/m2}
+      DOUBLE PRECISION :: vw(ncell)    = vw stress {N/m2}
+      DOUBLE PRECISION :: u2o(ncell)   = old time-step u2 stress {N/m2}
+      DOUBLE PRECISION :: v2o(ncell)   = old time-step v2 stress {N/m2}
+      DOUBLE PRECISION :: w2o(ncell)   = old time-step w2 stress {N/m2}
+      DOUBLE PRECISION :: uvo(ncell)   = old time-step uv stress {N/m2}
+      DOUBLE PRECISION :: uwo(ncell)   = old time-step uw stress {N/m2}
+      DOUBLE PRECISION :: vwo(ncell)   = old time-step vw stress {N/m2}
+      DOUBLE PRECISION :: u2oo(ncell)  = old old time-step u2 stress {N/m2} 
+      DOUBLE PRECISION :: v2oo(ncell)  = old old time-step v2 stress {N/m2} 
+      DOUBLE PRECISION :: w2oo(ncell)  = old old time-step w2 stress {N/m2} 
+      DOUBLE PRECISION :: uvoo(ncell)  = old old time-step uv stress {N/m2} 
+      DOUBLE PRECISION :: uwoo(ncell)  = old old time-step uw stress {N/m2} 
+      DOUBLE PRECISION :: vwoo(ncell)  = old old time-step vw stress {N/m2} 
+      DOUBLE PRECISION :: su4(ncell)   = sources for Reynolds-stress equation {-} 
+      DOUBLE PRECISION :: su5(ncell)   = sources for Reynolds-stress equation {-} 
+      DOUBLE PRECISION :: su6(ncell)   = sources for Reynolds-stress equation {-} 
+      DOUBLE PRECISION :: sp4(ncell)   = sources for Reynolds-stress equation {-} 
+      DOUBLE PRECISION :: sp5(ncell)   = sources for Reynolds-stress equation {-} 
+      DOUBLE PRECISION :: sp6(ncell)   = sources for Reynolds-stress equation {-} 
+      DOUBLE PRECISION :: u2b(nbfac)   = u2 stress at boundaries {N/m2}
+      DOUBLE PRECISION :: v2b(nbfac)   = v2 stress at boundaries {N/m2}
+      DOUBLE PRECISION :: w2b(nbfac)   = w2 stress at boundaries {N/m2}
+      DOUBLE PRECISION :: uvb(nbfac)   = uv stress at boundaries {N/m2}
+      DOUBLE PRECISION :: uwb(nbfac)   = uw stress at boundaries {N/m2}
+      DOUBLE PRECISION :: vwb(nbfac)   = vw stress at boundaries {N/m2}
+      DOUBLE PRECISION :: deluu(ncell) = used in RSM model {-}
+      DOUBLE PRECISION :: delvv(ncell) = used in RSM model {-}
+      DOUBLE PRECISION :: g4(3,ncell)  = used in RSM model {-}
+      DOUBLE PRECISION :: g5(3,ncell)  = used in RSM model {-}
+      DOUBLE PRECISION :: g6(3,ncell)  = used in RSM model {-}
+c-----
+      DOUBLE PRECISION :: fcmu(ncell)    = used in HTM model {-}
+      DOUBLE PRECISION :: vito(ncell)    = old time-step turbulent viscosity {Pas}
+      DOUBLE PRECISION :: vitoo(ncell)   = old old time-step turbulent viscosity {Pas}
+      DOUBLE PRECISION :: dn(ncell)      = normal distance {m}
+      DOUBLE PRECISION :: rirmas(0:nreg) = mass flow at the boundary {-}
+c-----
+      INTEGER :: i_cellid(ncell) = selection variables {-}
+c-----
+      DOUBLE PRECISION :: direc(3,ncell) = 'direction' vector for porosity (catalyst)
+c-----
+      INTEGER :: npor(ncell)  = currently not used {-}
+      INTEGER :: i_cell(:)    = currently not used {-}
+      INTEGER :: nelpor(:)    = currently not used {-}
+      INTEGER :: ichow(ncell) = de-activation of Rhie-Chow interpolation {-}
+c-----
+      DOUBLE PRECISION :: fpor(ncell) = volume fraction for porosity {-}
+c-----------------------------------------------------------------------
+c-----coupling
+c-----------------------------------------------------------------------
+      INTEGER :: ntab_hbdy(4,2*ncell) = FEM - CFD coupling {-}
+      INTEGER :: intab(2,2*ncell)     = FEM - CFD coupling {-}
+      INTEGER :: ntab_spid(2,2*ncell) = FEM - CFD coupling {-}
+c-----
+      DOUBLE PRECISION :: co_temp(4,2*ncell)      = FEM - CFD coupling {-}
+      DOUBLE PRECISION :: co_heat_coef(5,2*ncell) = FEM - CFD coupling {-}
+      DOUBLE PRECISION :: dum_var(2*ncell)        = FEM - CFD coupling {-}
+c-----------------------------------------------------------------------
+c-----multiphase flow
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: vfb(nbfac)   = volume fraction at boundaries {-}
+      DOUBLE PRECISION :: vf(ncell)    = volume fraction cell-centre {-}
+      DOUBLE PRECISION :: vff(nface)   = volume fraction at faces {-}
+      DOUBLE PRECISION :: vfo (ncell)  = old time-step volume fraction cell-centre {-}
+      DOUBLE PRECISION :: vfoo (ncell) = old old time-step volume fraction cell-centre {-}
+c-----------------------------------------------------------------------
+c-----moving grid
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: fg(nface)  = correction flux for mesh movement {}
+      DOUBLE PRECISION :: ug1(nface) = face velocity x of internal faces {m/s}
+      DOUBLE PRECISION :: ug2(nface) = face velocity y of internal faces {m/s}
+      DOUBLE PRECISION :: ug3(nface) = face velocity z of internal faces {m/s}
+c-----------------------------------------------------------------------
+c-----periodic boundary
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: su1(ncell) = constant part of linearised source term {-}
+      DOUBLE PRECISION :: su2(ncell) = constant part of linearised source term {-}
+      DOUBLE PRECISION :: su3(ncell) = constant part of linearised source term {-}
+      DOUBLE PRECISION :: ab(nbfac)  = convection coefficients at boundaries {-}
+c-----------------------------------------------------------------------
+c-----algebraic multigrid method
+c-----------------------------------------------------------------------
+      INTEGER :: iaamg(:) = algebraic multigrid variable {-}
+      INTEGER :: jaamg(:) = algebraic multigrid variable {-}
+      INTEGER :: igamg(:) = algebraic multigrid variable {-}
+c-----
+      DOUBLE PRECISION :: aamg(:) = algebraic multigrid variable {-}
+      DOUBLE PRECISION :: ramg(:) = algebraic multigrid variable {-}
+      DOUBLE PRECISION :: uamg(:) = algebraic multigrid variable {-}
+      DOUBLE PRECISION :: work(:) = algebraic multigrid variable {-}
+c-----------------------------------------------------------------------
+c-----parallel version
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: proplo1(ncell) = domain decomposition factor {-} 
+      DOUBLE PRECISION :: proplo2(ncell) =
+c-----
+      INTEGER :: indbuf(ncell) = number of cells adjacent to buffer regions {-}
+c-----
+      DOUBLE PRECISION :: buffer(ncell) = values of variable to be exchanged from the buffer region {-}
+c-----------------------------------------------------------------------
+c-----engine version
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: xfo(nface)  = old x values of internal face coordinates {m}
+      DOUBLE PRECISION :: yfo(nface)  = old y values of internal face coordinates {m}
+      DOUBLE PRECISION :: zfo(nface)  = old z values of internal face coordinates {m}
+      DOUBLE PRECISION :: xfbo(nbfac) = old x values of boundary face coordinates {m}
+      DOUBLE PRECISION :: yfbo(nbfac) = old y values of boundary face coordinates {m}
+      DOUBLE PRECISION :: zfbo(nbfac) = old z values of boundary face coordinates {m}
+c-----------------------------------------------------------------------
+c-----sliding
+c-----------------------------------------------------------------------
+      INTEGER :: lbj(nbfac) = face connectivity for cyclic boundary {-}
+c-----------------------------------------------------------------------
+c-----spray linker information
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: xv(3,nvert) = vertex coordinate arrays {-}
+c-----
+      INTEGER :: lflf(:) = array for all face vertices {-}
+      INTEGER :: lfuf(:) = pointer array for face vertices {-}
+      INTEGER :: lflb(:) = array for all boundary vertices {-}
+      INTEGER :: lfub(:) = pointer array for boundary vertices {-}
+c-----
+c=======================================================================
+       end MODULE comm1
+c=======================================================================
+c-----
+c#######################################################################
+c#######################################################################
+c-----
+c=======================================================================
+       MODULE comm2
+c=======================================================================
+c-----
+       INTEGER :: nph  = number phases {-}
+       INTEGER :: nid  = number of interfaces {-}
+       INTEGER :: ndo  = number of materials {-}
+c-----
+c-----------------------------------------------------------------------
+c-----multiphase flow related variables
+c-----------------------------------------------------------------------
+c-----
+       DOUBLE PRECISION :: denoo(ncell)      = old old time-step density {kg/m3}
+       DOUBLE PRECISION :: um(3,ncell*nph)   = multi-phase velocity {m/s}
+       DOUBLE PRECISION :: umb(3,nbfac*nph)  = multi-phase velocity at boundaries {m/s}
+       DOUBLE PRECISION :: umo(3,ncell*nph)  = multi-phase old time-step velocity {m/s}
+       DOUBLE PRECISION :: umoo3,ncell*nph)  = multi-phase old old time-step velocity {m/s}
+       DOUBLE PRECISION :: tem(3,ncell*nph)  = multi-phase turbulence kinetic energy {m2/s2}
+       DOUBLE PRECISION :: temb(nbfac*nph)   = multi-phase turbulence kinetic energy at boundaries {m2/s2}
+       DOUBLE PRECISION :: temo(ncell*nph)   = multi-phase old tiem-step turbulence kinetic energy {m2/s2}
+       DOUBLE PRECISION :: temoo(ncell*nph)  = multi-phase old old tiem-step turbulence kinetic energy {m2/s2}
+       DOUBLE PRECISION :: edm(ncell*nph)    = multi-phase dissipation rate {m2/s3}
+       DOUBLE PRECISION :: edmb(nbfac*nph)   = multi-phase dissipation rate at boundaries {m2/s3}
+       DOUBLE PRECISION :: edmo(nbfac*nph)   = multi-phase old tiem-step dissipation rate {m2/s3}
+       DOUBLE PRECISION :: edmoo(nbfac*nph)  = multi-phase old old tiem-step dissipation rate {m2/s3}
+       DOUBLE PRECISION :: hsm(ncell*nph)    = multi-phase total enthalpy {J/kg}
+       DOUBLE PRECISION :: hsmb(nbfac*nph)   = multi-phase total enthalpy at boundaries {J/kg}
+       DOUBLE PRECISION :: hsmo(nbfac*nph)   = multi-phase old time-step total enthalpy {J/kg}
+       DOUBLE PRECISION :: hsmoo(ncell*nph)  = multi-phase old old time-step total enthalpy {J/kg}
+       DOUBLE PRECISION :: vitm(ncell*nph)   = multi-phase turbulent viscosity {Pas}
+       DOUBLE PRECISION :: vitmb(ncell*nph)  = multi-phase turbulent viscosity at boundaries {Pas}
+       DOUBLE PRECISION :: vitmo(ncell*nph)  = multi-phase old time-step turbulent viscosity {Pas}
+       DOUBLE PRECISION :: vitmoo(ncell*nph) = multi-phase old old time-step turbulent viscosity {Pas}
+       DOUBLE PRECISION :: vfm(ncell*nph)    = multi-phase volume fraction cell-centre {-}
+       DOUBLE PRECISION :: vfmb(nbfac*nph)   = multi-phase volume fraction at boundaries {-}
+       DOUBLE PRECISION :: vfmo(ncell*nph)   = multi-phase old time-step volume fraction cell-centre {-}
+       DOUBLE PRECISION :: vfmoo(ncell*nph)  = multi-phase old old time-step volume fraction cell-centre {-}
+       DOUBLE PRECISION :: vfmf(nface*nph)   = multi-phase volume fraction at faces {-}
+       DOUBLE PRECISION :: denm(ncell*nph)   = multi-phase density {kg/m3}
+       DOUBLE PRECISION :: denmb(nbfac*nph)  = multi-phase density at boundaries {kg/m3}
+       DOUBLE PRECISION :: denmo(ncell*nph)  = multi-phase old time-step density {kg/m3}
+       DOUBLE PRECISION :: denmoo(ncell*nph) = multi-phase old old time-step density {kg/m3}
+       DOUBLE PRECISION :: phim(ncell*nph)   = multi-phase scalar {-}
+       DOUBLE PRECISION :: phimb(nbfac*nph)  = multi-phase scalar at boundaries {-}
+       DOUBLE PRECISION :: phimo(ncell*nph)  = multi-phase old time-step scalar {-} 
+       DOUBLE PRECISION :: phimoo(ncell*nph) = multi-phase old old time-step scalar {-}
+       DOUBLE PRECISION :: tm(ncell*nph)     = multi-phase temperature {K}
+       DOUBLE PRECISION :: tmb(nbfac*nph)    = multi-phase temperature at boundaries {K}
+       DOUBLE PRECISION :: fm(nface*nph)     = multi-phase convective flux (internal cell faces) {m3/s}
+       DOUBLE PRECISION :: fmb(nbfac*nph)    = multi-phase convective flux (boundary cell faces) {m3/s}
+       DOUBLE PRECISION :: fm1(nface*nph)    = multi-phase convective flux (internal cell faces) normalized by volume fraction {m3/s}
+       DOUBLE PRECISION :: fm1o(nface*nph)   = old time step multi-phase convective flux (internal cell faces) normalized 
+       DOUBLE PRECISION :: fm1b(nbfac*nph)   = multi-phase convective flux (boundary cell fases) normalized 
+       DOUBLE PRECISION :: ptotmb(nbfac*nph) = multi-phase total pressure at boundaries {Pa}
+       DOUBLE PRECISION :: vfl(ncell*nph)    = volume fraction cell-centre (multi-phase) {-}
+       DOUBLE PRECISION :: vflb(nbfac*nph)   = volume fraction at boundaries (multi-phase) {-}
+c-----
+       DOUBLE PRECISION :: spm1(ncell*nph)    = coefficient in the linearised source term (multi-phase) {-}
+       DOUBLE PRECISION :: spm2(ncell*nph)    = coefficient in the linearised source term (multi-phase) {-}
+       DOUBLE PRECISION :: spm3(ncell*nph)    = coefficient in the linearised source term (multi-phase) {-}
+       DOUBLE PRECISION :: sum1(ncell*nph)    = constant part of linearised source term (multi-phase) {-}
+       DOUBLE PRECISION :: sum2(ncell*nph)    = constant part of linearised source term (multi-phase) {-}
+       DOUBLE PRECISION :: sum3(ncell*nph)    = constant part of linearised source term (multi-phase) {-}
+       DOUBLE PRECISION :: spea1(ncell*nph)   = sp1 momentum source with PEA method {-} 
+       DOUBLE PRECISION :: spea2(ncell*nph)   = sp2 momentum source with PEA method {-} 
+       DOUBLE PRECISION :: spea3(ncell*nph)   = sp3 momentum source with PEA method {-} 
+       DOUBLE PRECISION :: appm(ncell*nph)    = central point coefficient (multi-phase) {-}
+       DOUBLE PRECISION :: afm(2,nface*nph)   = multi-phase convection coefficients {-}
+       DOUBLE PRECISION :: auxmb(nbfac*nph)   = multi-phase wall heat flux {}
+       DOUBLE PRECISION :: abm(nbfac*nph)     = convection coefficients at boundaries (multi-phase) {-}
+       DOUBLE PRECISION :: gm1(3,ncell*nph)   = multi-phase gradient u component and scalars {1/m}
+       DOUBLE PRECISION :: gammam(ncell*nph)  = multi-phase thermal conductivity {}
+       DOUBLE PRECISION :: vimm(ncell*nph)    = multi-phase molecular viscosity {Pas}
+       DOUBLE PRECISION :: cpmcof(ncell*nph)  = multi-phase specific heat capacity {J/kg/K}
+       DOUBLE PRECISION :: cpmcofb(nbfac*nph) = multi-phase specific heat capacity at boundaries {J/kg/K}
+       DOUBLE PRECISION :: rgasm(ncell*nph)   = multi-phase gas constant {J/kg/K}
+       DOUBLE PRECISION :: genm(ncell*nph)    = multi-phase production of turbulence kinetic energy {W/m3}
+       DOUBLE PRECISION :: genmwal(nbfac*nph) = multi-phase production of turbulence kinetic energy at wall {W/m3}
+       DOUBLE PRECISION :: dgdpm(ncell*nph)   = mass exchange differential with respect to pressure {
+       DOUBLE PRECISION :: cmxm(ncell*nph)    = mass exchange rate {kg/s}
+       DOUBLE PRECISION :: cmax(ncell*nph)    = maximum component mass available in the cell {kg/s}
+       DOUBLE PRECISION :: cmin(ncell*nph)    = minimum component mass available in the cell {kg/s}
+       DOUBLE PRECISION :: cdrag(ncell*nph)   = drag coefficient {kg/sPa}
+c-----------------------------------------------------------------------
+c-----mp: initialization and boundary variables
+c-----------------------------------------------------------------------
+       DOUBLE PRECISION :: rbcm(11,0:((nreg+1)*nph-1)) = boundary type specification (multi-phase) {-}
+       DOUBLE PRECISION :: umin(nph*ndo)               = initial u velocity (multi-phase) {m/s}
+       DOUBLE PRECISION :: vmin(nph*ndo)               = initial v velocity (multi-phase) {m/s}
+       DOUBLE PRECISION :: wmin(nph*ndo)               = initial w velocity (multi-phase) {m/s}
+       DOUBLE PRECISION :: temin(nph*ndo)              = initial turbulence kinetic energy (multi-phase) {m2/s2}
+       DOUBLE PRECISION :: edmin(nph*ndo)              = initial dissipation rate (multi-phase) {m2/s3}
+       DOUBLE PRECISION :: phimin(nph*ndo)             = initial passive scalar (multi-phase) {-}
+       DOUBLE PRECISION :: hsmin(nph*ndo)              = initial enthalpy (multi-phase) {J/kg}
+       DOUBLE PRECISION :: tmin(nph*ndo)               = initial temperature (multi-phase) {K}
+       DOUBLE PRECISION :: vfmin(nph*ndo)              = initial volume fraction (multi-phase) {-}
+       DOUBLE PRECISION :: fvinm(nph*ndo)              = initial turbulence kinetic energy (multi-phase) {m2/s2}
+c-----
+       DOUBLE PRECISION :: tmref(nph*ndo)   = reference temperature (multi-phase) {K}
+       DOUBLE PRECISION :: gasrefm(nph*ndo) = reference gas constant (multi-phase) {J/kg/K}
+       DOUBLE PRECISION :: denmr(nph*ndo)   = reference density (multi-phase) {K}
+       DOUBLE PRECISION :: gammr(nph*ndo)   = reference temperature (multi-phase) {K}
+       DOUBLE PRECISION :: vismm(nph*ndo)   = reference viscosity (multi-phase) {Pas}
+       DOUBLE PRECISION :: cpmr(nph*ndo)    = reference specific heat capacity (multi-phase) {J/kg/K}
+c-----
+       DOUBLE PRECISION :: xmcon(ncell*nph)     = mass conservation saving (multi-phase) {-}
+       DOUBLE PRECISION :: xmco1(ncell*nph)     = currently not used {-}
+       DOUBLE PRECISION :: xmco2(ncell*nph)     = currently not used {-}
+       DOUBLE PRECISION :: xmco3(ncell*nph)     = currently not used {-}
+       DOUBLE PRECISION :: pm(ncell*nph)        = multi-phase pressure {Pa}
+       DOUBLE PRECISION :: pmb(nbfac*nph)      = multi-phase pressure at boundaries {Pa}
+       DOUBLE PRECISION :: rnfm(ndo,0:nva,nph) = residual normalisation factor (multi-phase) {-}
+       DOUBLE PRECISION :: rnom(ndo,0:nva,nph) = normalised residual (multi-phase) {-}
+c-----
+       INTEGER :: iphai(nte,2,nid) = the phase interacting at the nid interface {-}
+       INTEGER :: iphm(nph)        = index that order the phases from the lightest to the heaviest {-}
+c-----interface exchange variables
+       INTEGER :: ixvf(nid)  = interface exchange volume fraction (multi-face) {-}
+       INTEGER :: ixmof(nid) = old time-step interface exchange volume fraction (multi-face) {-}
+       INTEGER :: ixhs(nid)  = interface exchange enthalpy (multi-face) {J/kg}
+       INTEGER :: ixte(nid)  = interface exchange turbulence kinetic energy (multi-face) {m2/s2}
+       INTEGER :: ixed(nid)  = interface exchange disspation rate (multi-face) {m2/s3}
+c-----
+       DOUBLE PRECISION :: pcon(nid)   = number density {#/m3}
+       DOUBLE PRECISION :: psat(nid)   = saturation pressure {Pa}
+       DOUBLE PRECISION :: cegler(nid) = Egler coefficient {-}
+       DOUBLE PRECISION :: diam(nid)   = bubble/droplet/particle diameter in momentum equation (m}
+       DOUBLE PRECISION :: diamh(nid)  = bubble/droplet/particle diameter in enthalpy equation (m}
+       DOUBLE PRECISION :: ctd(nid)    = turbulent dispersion force coefficient {-}
+       DOUBLE PRECISION :: csato(nid)  = Sato's coefficient {-}
+       DOUBLE PRECISION :: sigma (nid) = surface tension {N/m}
+c-----------------------------------------------------------------------
+c-----homogeneous model couplings
+c-----------------------------------------------------------------------
+       INTEGER :: nsph(0:nva,nph) = 
+       INTEGER :: lsph(0:nva,nph) = linked list of 
+       INTEGER :: ncal(nph)       = flag for calculated phase {-}
+       INTEGER :: nzvel(nph)      = flag for the "zero velocity" phase {-}
+c-----------------------------------------------------------------------
+c-----volume of fluid
+c-----------------------------------------------------------------------
+       DOUBLE PRECISION :: betaf(nface)   = beta coefficient, VOF model {-}
+       DOUBLE PRECISION :: betafo(nface)  = old time step beta coefficient, VOF model {-}
+       DOUBLE PRECISION :: cn(ncell)      = courant number, VOF model {-}
+       DOUBLE PRECISION :: voftmp(ncell)  = temporal array used for VOF {-}
+       DOUBLE PRECISION :: voftmp1(ncell) = temporal array used for VOF {-}
+       DOUBLE PRECISION :: voftmp2(ncell) = temporal array used for VOF {-}
+       DOUBLE PRECISION :: voftmp3(ncell) = temporal array used for VOF {-}
+       DOUBLE PRECISION :: voftmp4(ncell) = temporal array used for VOF {-}
+       DOUBLE PRECISION :: voftmp5(ncell) = temporal array used for VOF {-}
+       DOUBLE PRECISION :: voftmp6(ncell) = temporal array used for VOF {-}
+       DOUBLE PRECISION :: voftmp7(ncell) = temporal array used for VOF {-}
+       DOUBLE PRECISION :: voftmp8(ncell) = temporal array used for VOF {-}
+c-----
+       INTEGER :: itervf      =
+       INTEGER :: iterdef     =
+       INTEGER :: ivofsw(nph) = VOF flag for the nph phase {-}
+c-----
+c=======================================================================
+      END MODULE comm2
+c=======================================================================
+c-----
+c#######################################################################
+c#######################################################################
+c-----
+c=======================================================================
+       MODULE cthmod
+c=======================================================================
+c-----
+      INTEGER :: ithcfl = application flag {-}
+      INTEGER :: numscl = number of gas phase species = number of scalars {-}
+      INTEGER :: ithcdb = debug flag for thc module {-}
+      INTEGER :: icksuc = 1, if chemkin thermdat read successful {-}
+      INTEGER :: itrsuc = 1, if chemkin trandat read successful {-}
+      INTEGER :: ifoutf = flag residual output frequency {-}
+      INTEGER :: ifthin = flag for input of thermdat database {-}
+      INTEGER :: iftdin = flag for input of trandat database {-}
+c-----------------------------------------------------------------------
+c-----physical property calculation flags: set up via input file
+c-----------------------------------------------------------------------
+      INTEGER :: iprpcp = flag for calculation of cp {-}
+      INTEGER :: iprpro = flag for calculation of density {-}
+      INTEGER :: iprptc = flag for calculation of thermal conducivity {-}
+      INTEGER :: iprped = flag for calculation of effective diffusion coeff {-}
+      INTEGER :: iprpmu = flag for calculation of viscosity {-}
+      INTEGER :: iprpmw = flag for calculation of molecular weight {-}
+c-----
+      INTEGER :: icthou(50)  = array for output flags {-}
+      INTEGER :: itflag(100) = help array {-}
+c-----------------------------------------------------------------------
+c-----arrays with dimension numscl
+c-----------------------------------------------------------------------
+      INTEGER :: iscprp(numscl) = old prop assignment {-}
+      INTEGER :: iscsol(numscl) = solve this scalar {-}
+c-----
+      DOUBLE PRECISION :: wmolar(numscl)    = molecular weight {kg/kmole}
+      DOUBLE PRECISION :: enthfo(numscl)    = enthalpy of formation at 298K {kj/kmole}
+      DOUBLE PRECISION :: cphelp(numscl)    = help array for cp calculation {-}
+      DOUBLE PRECISION :: urfacs(numscl)    = under-relaxation factors for species {-}
+      DOUBLE PRECISION :: ymfini(numscl)    = initial mass fractions {-}
+      DOUBLE PRECISION :: yismfr(numscl)    = single mass fractions {-}
+      DOUBLE PRECISION :: cpcoef(20*numscl) = specific heat {J/kgK}
+      DOUBLE PRECISION :: cprpcp(numscl)    = constant cp values {J/kgK}
+      DOUBLE PRECISION :: cprpro(numscl)    = constant density values {kg/m3}
+      DOUBLE PRECISION :: cprptc(numscl)    = constant lambda values {W/mK}
+      DOUBLE PRECISION :: cprped(numscl)    = constant diffusion coefficients {m/s}
+      DOUBLE PRECISION :: cprpmu(numscl)    = constant mu values {Pas}
+		DOUBLE PRECISION :: cprpmw(numscl)    = constant mw values {kg/kmole}
+c-----------------------------------------------------------------------
+c-----database thermdat input (and output) information arrays
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: therdb(20*numscl) = thermdat database {-}
+c-----------------------------------------------------------------------
+c-----database trandat input and output information arrays
+c-----------------------------------------------------------------------
+      INTEGER :: trnlin(numscl) = input nlin {-}
+c-----
+      DOUBLE PRECISION :: tr_eps(numscl) = input eps {-}
+      DOUBLE PRECISION :: tr_sig(numscl) = input sig {-}
+      DOUBLE PRECISION :: tr_dip(numscl) = input dip {-}
+      DOUBLE PRECISION :: tr_pol(numscl) = input pol {-}
+      DOUBLE PRECISION :: trzrot(numscl) = input zrot {-}
+      DOUBLE PRECISION :: tra_cv(numscl) = help array cv {-}
+c-----
+      DOUBLE PRECISION :: trclam(4,numscl)         = output coflam {-}
+      DOUBLE PRECISION :: trceta(4,numscl)         = output cofeta {-}
+      DOUBLE PRECISION :: trcofd(4*numscl*numscl)  = output cofd {-}
+      DOUBLE PRECISION :: trcodd(4,numscl,numscl)) = output cofd_1 (help) {-}
+c-----
+      CHARACTER(LEN=20) :: ymfstr(numscl) = string for species names array {-}
+c-----------------------------------------------------------------------
+c-----species mass fractions (solution variable)
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: ymfrac(numscl*ncell) = species mass fraction {-}
+      DOUBLE PRECISION :: ymfrao(numscl*ncell) = old time-step species mass fraction {-}
+      DOUBLE PRECISION :: ymfroo(numscl*ncell) = old old time-step species mass fraction {-}
+      DOUBLE PRECISION :: ymfrar(numscl*ncell) = species mass fraction rate {kg/m3/s}
+      DOUBLE PRECISION :: ymfrab(numscl*nbfac) = species mass fraction at boundary {-}
+c-----
+      DOUBLE PRECISION :: ymolfr(numscl*ncell) = species mol fraction {-}
+      DOUBLE PRECISION :: ymolfb(numscl*nbfac) = species mol fraction at boundary {-}
+c-----
+      DOUBLE PRECISION :: thcond(ncell) = heat conductivity {W/m/K}
+c-----
+      DOUBLE PRECISION :: effdif(numscl*ncell) = effective diffusion coefficient {m/s}
+c-----
+		DOUBLE PRECISION :: scldum(:) = dummy arrays (currently not used) {-}
+		DOUBLE PRECISION :: scldur(:) = dummy arrays (currently not used) {-}
+		DOUBLE PRECISION :: scldu2(:) = dummy arrays (currently not used) {-}
+c----- 
+c=======================================================================
+      END MODULE cthmod
+c=======================================================================
+c-----
+c#######################################################################
+c#######################################################################
+c-----
+c=======================================================================
+       module cctmod
+c=======================================================================
+c-----
+      INTEGER :: icctfl = activation/deactivation of turbulence controlled combustion {-}
+      INTEGER :: icckfl = activation/deactivation of kinetic combustion {-}
+      INTEGER :: ispkig = activation/deactivation of spark ignition model {-}
+      INTEGER :: icomig = activation/deactivation of compression ignition model {-}
+      INTEGER :: imagnu = activation/deactivation of eddy-break-up combustion model {-}
+      INTEGER :: ipdfmd = activation/deactivation of pdf combustion model {-}
+      INTEGER :: ictsmd = activation/deactivation of cts combustion model {-}
+      INTEGER :: ictson = activation/deactivation of cts source term {-}
+      INTEGER :: iusrat = activation/deactivation of reaction rate user function {-}
+      INTEGER :: numscp = number of passive scalars {-}
+      INTEGER :: numtrc = number of tracers {-}
+c-----
+      INTEGER          :: iscalo(30) = combustion model activation array {-}
+      INTEGER          :: iscaoo(30) = old combustion model activation array {-}
+      DOUBLE PRECISION :: egrcmp(10) = egr composition array {-}
+c-----
+      INTEGER          :: nftdat      = number of different fuel type data {-}
+      DOUBLE PRECISION :: rcctft(5,2) = fuel type specification (c-,h-atoms) {-}
+      DOUBLE PRECISION :: rhfuel(5)   = lower calorific value of the fuel type {MJ/kg}
+c-----
+      INTEGER          :: nstdat    = number of spark timing data {-}
+      DOUBLE PRECISION :: timign(5) = spark timing specification {s}
+      DOUBLE PRECISION :: durign(5) = spark duration specification {s}
+c-----
+      INTEGER          :: nsldat      = number of spark location data {-}
+      DOUBLE PRECISION :: xyzign(5,3) = spark location specification {m}
+      DOUBLE PRECISION :: rikrad(5)   = initial flame kernel radius specification {m}
+c-----
+      INTEGER          :: nskdat       = number of spark kernel data {-}
+      INTEGER          :: ncigni       = number of ignition cells {-}
+      INTEGER          :: nsidat       = number of spark energy input data {-}
+      DOUBLE PRECISION :: signit(50,2) = time fraction and spark energy input specification {J/s}
+c-----
+      INTEGER :: icctig = spark ignition source control flag {-}
+      INTEGER :: iccton = turbulent combustion source control flag {-}
+      INTEGER :: icctcf = turbulent combustion control flag {-}
+      INTEGER :: icctyp = magnussen combustion model type {-}
+c-----
+      DOUBLE PRECISION :: eqvrt0 = initial equivalence ratio {kg/kg}
+      DOUBLE PRECISION :: egrrt0 = initial residual gas mass fraction {kg/kg}
+      DOUBLE PRECISION :: egreqv = initial residual gas equivalence ratio {kg/kg}, never used
+c-----
+      DOUBLE PRECISION :: stfm   = stoichiometric mixture fraction {kg/kg}
+      DOUBLE PRECISION :: stafr  = stoichiometric air/fuel ratio {kg/kg}
+      DOUBLE PRECISION :: sto2   = stoichiometric oxygen/fuel ratio {kg/kg}
+      DOUBLE PRECISION :: fo2    = mass fraction of oxygen in air {kg/kg}
+      DOUBLE PRECISION :: fco    = mass fraction of co in product {kg/kg}
+      DOUBLE PRECISION :: fco2   = mass fraction of co2 in product {kg/kg}
+      DOUBLE PRECISION :: fh2o   = mass fraction of h2o in product {kg/kg}
+      DOUBLE PRECISION :: acnt   = 1. magnussen combustion model constant {-}
+      DOUBLE PRECISION :: bcnt   = 2. magnussen combustion model constant {-}
+      DOUBLE PRECISION :: rtscl  = magnussen reaction time-scale {s}
+      DOUBLE PRECISION :: cavg   = mass averaged progress variable {-}
+      DOUBLE PRECISION :: fubrnt = mass of fuel burnt during the time-step {kg}
+      DOUBLE PRECISION :: fubsum = total burnt fuel mass fraction {-}
+      DOUBLE PRECISION :: fubfr  = fraction of total fuel mass burnt {-}
+      DOUBLE PRECISION :: qrrate = heat release rate {J/s}
+      DOUBLE PRECISION :: qrtotl = total heat release {J}
+      DOUBLE PRECISION :: qrsum  = accumulated heat release {J}
+      DOUBLE PRECISION :: conttl = Eddy Breakup Model Timescale Limit Constant {s}
+c-----
+      INTEGER :: icmbwr     = combustion module information activation flag for extended output {-}
+      INTEGER :: icctrr     = cold flow restart activation flag {-}
+      INTEGER :: icctou(50) = output control flags for combustion quantities {-}
+      INTEGER :: itscal(20) = reaction timescale {s}
+      CHARACTER(LEN=20) :: yfustr(30) = string for specified fuel type {-}
+c-----------------------------------------------------------------------
+c-----turbulent flame speed closure model
+c-----------------------------------------------------------------------
+      INTEGER          :: itfsdm(10) = integer array for turbulent flame speed closure model {-}
+      DOUBLE PRECISION :: rtfsdm(10) = real array for turbulent flame speed closure model {-}
+c-----------------------------------------------------------------------
+c-----characteristic timescale model
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: rctscn(10) = cts combustion model constants {-}
+c-----------------------------------------------------------------------
+c-----nox / soot formation 
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: rnoscl    = laminar schmidt number for nox {-}
+      DOUBLE PRECISION :: rnosct    = turbulent schmidt number for nox {-}
+      DOUBLE PRECISION :: rsoscl    = laminar schmidt number for soot {-}
+      DOUBLE PRECISION :: rsosct    = turbulent schmidt number for soot {-}
+      INTEGER          :: inoflg(5) = nox activation flags {-}
+      INTEGER          :: isoflg(5) = soot activation flags {-}
+      DOUBLE PRECISION :: rnoval(5) = model parameters for nox {-}
+      DOUBLE PRECISION :: rsoval(5) = model parameters for soot {-}
+c-----------------------------------------------------------------------
+c-----multistep chemistry model
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: rfactm    = never used {-}
+      INTEGER          :: icckrr    = cold flow restart flag for multistep kinetics model {-}
+      INTEGER          :: icckig    = multistep kinetics flame kernel source control flag {-}
+      INTEGER          :: icckon    = multistep kinetics chemistry source control flag {-}
+      INTEGER          :: icckcf    = multistep kinetics chemistry control flag {-}
+      INTEGER          :: icckbt    = beta transformation flag {-}
+      INTEGER          :: icckmt    = laminar to turbulent transition control variable {-}
+      DOUBLE PRECISION :: coeff(38) = rate coefficients for kinetic combustion model {cm,g,s,K,mol}
+c-----------------------------------------------------------------------
+c-----additional passive scalar description
+c-----------------------------------------------------------------------
+      INTEGER           :: ipssol(30) = solution flag for passive scalar {-}
+      CHARACTER(LEN=20) :: ypsstr(30) = passive scalar string {-}
+      CHARACTER(LEN=20) :: ytrstr(30) = tracer string {-}
+c-----------------------------------------------------------------------
+c-----dummy arrays
+c-----------------------------------------------------------------------
+      INTEGER          :: idum00(ncell) = integer dummy array {-}
+      DOUBLE PRECISION :: pdum00(ncell) = real dummy array {-}
+c-----------------------------------------------------------------------
+c-----turbulent combustion reaction rate
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: rrate(ncell) = reaction rate {kg/m3/s}
+c-----------------------------------------------------------------------
+c-----mixture fraction
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: yfmixc(ncell) = mixture mass fraction {kg/kg}
+      DOUBLE PRECISION :: yfmixo(ncell) = old time-step mixture mass fraction {kg/kg}
+      DOUBLE PRECISION :: yfmioo(ncell) = old old time-step mixture mass fraction {kg/kg}
+      DOUBLE PRECISION :: yfmixr(ncell) = mixture mass fraction rate {kg/m3/s}
+      DOUBLE PRECISION :: yfmixb(nbfac) = mixture mass fraction at boundary {kg/kg}
+c-----------------------------------------------------------------------
+c-----egr arrays
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: yegrmf(ncell) = exhaust gas mass fraction {kg/kg}
+      DOUBLE PRECISION :: yegrmo(ncell) = old time-step exhaust gas mass fraction {kg/kg}
+      DOUBLE PRECISION :: yegroo(ncell) = old old time-step exhaust gas mass fraction {kg/kg}
+      DOUBLE PRECISION :: yegrrr(ncell) = exhaust gas mass fraction rate {kg/m3/s}
+      DOUBLE PRECISION :: yegrmb(nbfac) = exhaust gas mass fraction at boundary {kg/kg}
+c-----------------------------------------------------------------------
+c-----spark ignition model arrays
+c-----------------------------------------------------------------------
+      INTEGER :: igcell(ncell) = ignition cell address {-}
+c-----------------------------------------------------------------------
+c-----turbulent flame speed closure model arrays
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: grdfua(ncell) = fuel mass fraction gradient {1/m}
+      DOUBLE PRECISION :: grdfub(nbfac) = fuel mass fraction gradient at boundaries {1/m}
+c-----------------------------------------------------------------------
+c-----nox model arrays
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: ynoxmf(ncell) = nox mass fraction {kg/kg}
+      DOUBLE PRECISION :: ynoxmo(ncell) = old time-step nox mass fraction {kg/kg}
+      DOUBLE PRECISION :: ynoxoo(ncell) = old old time-step nox mass fraction {kg/kg}
+      DOUBLE PRECISION :: ynoxrr(ncell) = nox formation rate {kg/m3/s}
+      DOUBLE PRECISION :: ynoxmb(nbfac) = nox mass fraction at boundary {kg/kg}
+c-----------------------------------------------------------------------
+c-----soot model arrays
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: ysotmf(ncell) = nox mass fraction {kg/kg}
+      DOUBLE PRECISION :: ysotmo(ncell) = old time-step nox mass fraction {kg/kg}
+      DOUBLE PRECISION :: ysotoo(ncell) = old old time-step nox mass fraction {kg/kg}
+      DOUBLE PRECISION :: ysotrr(ncell) = nox formation rate {kg/m3/s}
+      DOUBLE PRECISION :: ysotmb(nbfac) = nox mass fraction at boundary {kg/kg}
+c-----
+      DOUBLE PRECISION :: ysotfr(ncell) = soot formation rate {1/s}
+      DOUBLE PRECISION :: ysotxr(ncell) = soot oxidation rate {1/s}
+c-----------------------------------------------------------------------
+c-----gas and soot radiation model arrays
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: ccdsen(ncell) = sink/source term of enthalpy due to radiation {W}
+      DOUBLE PRECISION :: ccdopc(ncell) = opacity of the gas phase {m}
+      DOUBLE PRECISION :: ccdare(ncell) = cell surface area {m2}
+c-----------------------------------------------------------------------
+c-----shell model arrays
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: yrdcmf(ncell) = radical r mass fraction {kg/kg}
+      DOUBLE PRECISION :: yrdcmo(ncell) = old time-step radical r mass fraction {kg/kg}
+      DOUBLE PRECISION :: yrdcoo(ncell) = old old time-step radical r mass fraction {kg/kg}
+      DOUBLE PRECISION :: yrdcrr(ncell) = radical r mass fraction rate {kg/m3/s}
+      DOUBLE PRECISION :: yrdcmb(nbfac) = radical r mass fraction at boundary {kg/kg}
+c-----
+      DOUBLE PRECISION :: ybrcmf(ncell) = agent b mass fraction {kg/kg}
+      DOUBLE PRECISION :: ybrcmo(ncell) = old time-step agent b mass fraction {kg/kg}
+      DOUBLE PRECISION :: ybrcoo(ncell) = old old time-step agent b mass fraction {kg/kg}
+      DOUBLE PRECISION :: ybrcrr(ncell) = agent b mass fraction rate {kg/m3/s}
+      DOUBLE PRECISION :: ybrcmb(nbfac) = agent b mass fraction at boundary {kg/kg}
+c-----
+      DOUBLE PRECISION :: yqncmf(ncell) = intermediate q mass fraction {kg/kg}
+      DOUBLE PRECISION :: yqncmo(ncell) = old time-step intermediate q mass fraction {kg/kg}
+      DOUBLE PRECISION :: yqncoo(ncell) = old old time-step intermediate q mass fraction {kg/kg}
+      DOUBLE PRECISION :: yqncrr(ncell) = intermediate q mass fraction rate {kg/m3/s}
+      DOUBLE PRECISION :: yqncmb(nbfac) = intermediate q mass fraction at boundary {kg/kg}
+c-----
+      DOUBLE PRECISION :: hignit(ncell) = ignition energy-rate per volume {J/m3/s}
+      DOUBLE PRECISION :: thrate(ncell) = kinetic thermal reaction rate {J/m3/s}
+      DOUBLE PRECISION :: btared(ncell) = reduced beta-transformation coefficient {-}
+      DOUBLE PRECISION :: trfact(ncell) = mue-transition factor {-}
+c-----------------------------------------------------------------------
+c-----additional passive scalars
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: ypscal(ncell) = passive scalar {-}
+      DOUBLE PRECISION :: ypscao(ncell) = old time-step passive scalar {-}
+      DOUBLE PRECISION :: ypscoo(ncell) = old old time-step passive scalar {-}
+      DOUBLE PRECISION :: ypscar(ncell) = passive scalar rate {-}
+      DOUBLE PRECISION :: ypscab(nbfac) = passive scalar at boundary {-}
+c-----------------------------------------------------------------------
+c-----scalar tracers
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: ytrace(ncell) = tracer array {-}
+c-----
+c=======================================================================
+      end module cctmod
+c=======================================================================
+c-----
+c#######################################################################
+c#######################################################################
+c-----
+c=======================================================================
+       module cfmmod
+c=======================================================================
+c-----
+      INTEGER :: ieximp     = explicit/implicit mode switch {-}
+      INTEGER :: ncfmsp     = number of selected properties to be solved {-}
+      INTEGER :: ncfmtr     = number of selected tracers to be solved {-}
+      INTEGER :: icfmdm(30) = integer array (e.g. activation, etc.) {-}
+c-----
+      DOUBLE PRECISION :: rcfmdm(30) = real array (e.g. parameter, etc.) {-}
+c-----
+      DOUBLE PRECISION :: cfmsda(ncell) = actual flame surface density {1/m}
+      DOUBLE PRECISION :: cfmsdo(ncell) = old time-step flame surface density {1/m}
+      DOUBLE PRECISION :: cfmsoo(ncell) = old old time-step flame surface density {1/m}
+      DOUBLE PRECISION :: cfmsdr(ncell) = flame surface density rate {1/ms}
+      DOUBLE PRECISION :: cfmsdb(nbfac) = flame surface density at boundary {1/m}
+c-----
+      DOUBLE PRECISION :: cfmtfr(ncell) = fresh gas temperature {K}
+      DOUBLE PRECISION :: cfmdfr(ncell) = fresh gas density {kg/m3}
+      DOUBLE PRECISION :: cfmtis(ncell) = initial temperature for isentropic transformation {K}
+      DOUBLE PRECISION :: cfmpis(ncell) = initial pressure for isentropic transformation {Pa}
+      DOUBLE PRECISION :: cfmlfs(ncell) = laminar flamelet speed {m/s}
+      DOUBLE PRECISION :: cfmduc(ncell) = dummy array for cell centre nodes {-}
+      DOUBLE PRECISION :: cfmduf(nface) = dummy array for cell faces {-}
+      DOUBLE PRECISION :: cfmdub(nbfac) = dummy array for cell boundaries {-}
+c-----
+      DOUBLE PRECISION :: cfment(ncell)        = enthalpy source term {W}
+      DOUBLE PRECISION :: cfmysp(ncfmsp*ncell) = actual selected property to be solved {-}
+      DOUBLE PRECISION :: cfmyso(ncfmsp*ncell) = old time-step selected property to be solved {-}
+      DOUBLE PRECISION :: cfmyoo(ncfmsp*ncell) = old old time-step selected property to be solved {-}
+      DOUBLE PRECISION :: cfmysr(ncfmsp*ncell) = selected property rate to be solved {-}
+      DOUBLE PRECISION :: cfmysb(ncfmsp*nbfac) = selected property to be solved at boundary {-}
+c-----
+      INTEGER :: icfmsl(ncfmsp) = solution flag for selected property to be solved {-}
+c-----
+      DOUBLE PRECISION :: cfmytr(ncfmtr*ncell) = number of selected tracers for eCFM {-}
+c-----
+      CHARACTER(LEN=20) :: cfmcsp(ncfmsp) = string name for selected properties {-}
+      CHARACTER(LEN=20) :: cfmctr(ncfmsp) = string name for selected tracers {-}
+c-----
+      DOUBLE PRECISION :: cfmr10(5) = flame kernel radius {m}
+      DOUBLE PRECISION :: cfmt2i(5) = convection duration time {s}
+      DOUBLE PRECISION :: cfmtdt(5) = transition time {s}
+      DOUBLE PRECISION :: cfmdpc(5) = flame deposition criterion {-}
+c-----
+      INTEGER :: icfmsp(5) = activation flag for ignition
+      INTEGER :: icfmcv(5) = activation flag for convection
+c-----
+c=======================================================================
+      end module cfmmod
+c=======================================================================
+c-----
+c#######################################################################
+c#######################################################################
+c-----
+c=======================================================================
+       module ccpmod
+c=======================================================================
+c-----
+      INTEGER :: iccpfl = pdf combustion control flag {-}
+      INTEGER :: iccpon = pdf combustion source control flag {-}
+      INTEGER :: iccpig = pdf ignition control flag {-}
+      INTEGER :: iccpcf = pdf combustion control flag {-} (currently not used)
+c-----
+      INTEGER :: nmscal = number of scalars for pdf {-}
+      INTEGER :: nmscli = first scalar loop index {-}
+      INTEGER :: nmsclf = last scalar loop index {-}
+c-----
+      INTEGER :: mrdnsw = flag for random number generator {-}
+      INTEGER :: mrdnno = random number seed {-}
+c-----
+      INTEGER :: number(5) = number of monte-carlo particles to represent pdf {-}
+c-----
+      DOUBLE PRECISION :: aarcnt = arrhenius constant, pre-exponential factor {m3/kmol/s}
+      DOUBLE PRECISION :: earcnt = arrhenius constant, activation energy {J/kmol}
+      DOUBLE PRECISION :: furcnt = arrhenius constant, fuel concentration exponent {-}
+      DOUBLE PRECISION :: oxrcnt = arrhenius constant, oxygen concentration exponent {-}
+c-----
+      DOUBLE PRECISION :: cntmix = mixing rate constant {-}
+      DOUBLE PRECISION :: tscmix = mixing time scale {s}
+c-----
+      INTEGER :: ncapar(ncell) = number of particles per cell {-}
+      INTEGER :: ncapao(ncell) = old time-step number of particles per cell {-}
+      INTEGER :: ncapoo(ncell) = old old time-step number of particles per cell {-}
+      INTEGER :: nctpar(ncell) = particle index (dynamic allocation) {-}
+      INTEGER :: nctpao(ncell) = old particle index (dynamic allocation) {-}
+      INTEGER :: nclass(ncell) = number of particle classes {-}
+c-----
+      REAL :: pdfarr(3,ncell) = pdf array {-}
+      REAL :: pdfaro(3,ncell) = old time-step pdf array {-}
+c-----
+      DOUBLE PRECISION :: pcarry(2,nface) = non-integer part of tranported particles {-}
+      DOUBLE PRECISION :: pcarrb(nbfac)   = non-integer part of tranported particles at boundaries {-}
+      DOUBLE PRECISION :: pcmixx(ncell)   = non-integer part of mixed particles {-}
+c-----
+c=======================================================================
+      END MODULE ccpmod
+c=======================================================================
+c-----
+c#######################################################################
+c#######################################################################
+c-----
+c=======================================================================
+       module ctsmod
+c=======================================================================
+c-----
+      INTEGER :: nfuels = number of fuel types
+c-----
+      PARAMETER (nfuels=37)
+c-----
+      CHARACTER(LEN=8) :: idfuel(nfuels) = character identifier of fuel type {-}
+c-----
+      INTEGER :: nfuel = fuel property {-}
+      INTEGER :: anumc = number of carbon atoms of fuel {-}
+      INTEGER :: anumh = number of hydrogen atoms of fuel {-}
+      INTEGER :: anumo = number of oxygen atoms of fuel {-}
+c-----
+      DOUBLE PRECISION :: fuelcon(nfuels*6)                                          = fuel type data {-}
+      DOUBLE PRECISION :: hk1(51),hk2(51),hk3(51),hk4(51),hki4(51),hk5(51),hki5(51)  = fuel enthalpy values {kcal/mol}
+      DOUBLE PRECISION :: hk6(51),hk7(51),hk8(51),hki8(51),hk9(51),hk10(51),hk12(51) = fuel enthalpy values {kcal/mol}
+      DOUBLE PRECISION :: hk13(51),hk14(51),hk16(51),hk24(51),hk36(51),hk816(51)     = fuel enthalpy values {kcal/mol}
+      DOUBLE PRECISION :: hk66(51),hk78(51),hk810(51),hkma(51),hkea(51)              = fuel enthalpy values {kcal/mol}
+      DOUBLE PRECISION :: hkdme(51),hk22(51),hkng(51),hkga(51),hkke(51),hkja(51)     = fuel enthalpy values {kcal/mol}
+      DOUBLE PRECISION :: hkdf(51),hkdi(51),hkh2(51),hkh2o(51),hkhe(51),hkar(51)     = fuel enthalpy values {kcal/mol}
+c-----
+      INTEGER :: kfuel = fuel index {-}
+      INTEGER :: ko2   = oxygen index {-}
+      INTEGER :: kn2   = nitrogen index {-}
+      INTEGER :: kco2  = carbon dioxide index {-}
+      INTEGER :: kh2o  = water index {-}
+      INTEGER :: kco   = carbon monoxide index {-}
+      INTEGER :: kh2   = hydrogen index {-}
+      INTEGER :: krs   = radical species index {-}
+      INTEGER :: kb    = branching species index {-}
+      INTEGER :: kq    = quenching species index {-}
+      INTEGER :: ksoot = soot index {-}
+      INTEGER :: kno   = nox index {-}
+c-----
+      DOUBLE PRECISION :: amw(12)    = species molecular weight {kg/kmol}
+      DOUBLE PRECISION :: rmw(12)    = inverse molecular weight {kmol/kg}
+      DOUBLE PRECISION :: htform(12) = formation enthalpy {kcal/mol}
+      DOUBLE PRECISION :: ek(51,12)  = energy {kcal/mol}
+      DOUBLE PRECISION :: hk(51,12)  = enthalpy {kcal/mol}
+c-----
+      INTEGER :: nsp7  = number of equilibrium species considered {-}
+      INTEGER :: nsp10 = 10 considered species {-} 
+      INTEGER :: nsp12 = 12 considered species {-} 
+c-----
+      DOUBLE PRECISION :: denomc = premixed burn constant {-}
+      DOUBLE PRECISION :: en     = activation temperature {K}
+      DOUBLE PRECISION :: e1     = fuel exponent of a one-step reaction rate {-}
+      DOUBLE PRECISION :: e2     = oxygen exponent of a one-step reaction rate {-}
+      DOUBLE PRECISION :: tchop  = minimum temperature for chemistry calculations {K}
+      DOUBLE PRECISION :: cm2    = turbulent combustion constant {-}
+c-----------------------------------------------------------------------
+c-----shell ignition model
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: am(10,6)   = stoichiometric coeff. of species on the left side {kg/kg}
+      DOUBLE PRECISION :: bm(10,6)   = stoichiometric coeff. of species on the right side {kg/kg}
+      DOUBLE PRECISION :: ae(10,6)   = exponent of species concentration in the forward rate {-}
+      DOUBLE PRECISION :: be(10,6)   = exponent of species isp concentration in the backward rate {-}
+      DOUBLE PRECISION :: bmam(10,6) = stoichiometric constants {-}
+      DOUBLE PRECISION :: cm(10,6)   = species index of reaction {-}
+      DOUBLE PRECISION :: nelem(6)   = number of elements {-}
+      DOUBLE PRECISION :: cf(6)      = shell ignition model {-}
+      DOUBLE PRECISION :: ef(6)      = shell ignition model {-}
+      DOUBLE PRECISION :: xs1        = shell ignition model {-}
+      DOUBLE PRECISION :: xs3        = shell ignition model {-}
+      DOUBLE PRECISION :: xs4        = shell ignition model {-}
+      DOUBLE PRECISION :: ys1        = shell ignition model {-}
+      DOUBLE PRECISION :: ys3        = shell ignition model {-}
+      DOUBLE PRECISION :: ys4        = shell ignition model {-}
+      DOUBLE PRECISION :: fueln      = number of carbon atoms of fuel {-}
+      DOUBLE PRECISION :: fuelm      = number of hydrogen atoms of fuel {-}
+      DOUBLE PRECISION :: cof        = initial co mass fraction at 20 deg. celsius {-}
+      DOUBLE PRECISION :: co2f       = initial co2 mass fraction at 20 deg. celsius {-}
+      DOUBLE PRECISION :: pstoic     = initial value at 20 deg. celsius {-}
+      DOUBLE PRECISION :: qfuel      = lower calorific fuel value {J/kg}
+      DOUBLE PRECISION :: ap1        = pre-exponential factor backward 1 {m3/kmol/s}
+      DOUBLE PRECISION :: ap2        = pre-exponential factor backward 2 {m3/kmol/s}
+      DOUBLE PRECISION :: ap3        = pre-exponential factor backward 3 {m3/kmol/s}
+      DOUBLE PRECISION :: ep1        = backward reaction activation temperature 1 {K}
+      DOUBLE PRECISION :: ep2        = backward reaction activation temperature 2 {K}
+      DOUBLE PRECISION :: ep3        = backward reaction activation temperature 3 {K}
+      DOUBLE PRECISION :: tcut       = shell model temperature limit {K}
+      DOUBLE PRECISION :: af01       = pre-exponential factor forward 1 {m3/kmol/s}
+      DOUBLE PRECISION :: af02       = pre-exponential factor forward 2 {m3/kmol/s}
+      DOUBLE PRECISION :: af03       = pre-exponential factor forward 3 {m3/kmol/s}
+      DOUBLE PRECISION :: af04       = pre-exponential factor forward 4 {m3/kmol/s}
+      DOUBLE PRECISION :: ef1        = forward reaction activation temperature 1 {K}
+      DOUBLE PRECISION :: ef2        = forward reaction activation temperature 2 {K}
+      DOUBLE PRECISION :: ef3        = forward reaction activation temperature 3 {K}
+      DOUBLE PRECISION :: ef4        = forward reaction activation temperature 4 {K}
+      DOUBLE PRECISION :: tfreez     = temperature limit for equilibrium {K}
+c-----------------------------------------------------------------------
+c-----soot model
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: srgas_c = gas constant in soot model {cal/mol/K}
+      DOUBLE PRECISION :: sotrho  = soot density {kg/m3}
+      DOUBLE PRECISION :: sotdia  = soot diameter {m}
+      DOUBLE PRECISION :: smw_c   = molecular weight of carbon {kg/kmol}
+      DOUBLE PRECISION :: esf     = activation energy {kal/mol}
+      DOUBLE PRECISION :: asf     = soot formation parameter {-}
+      DOUBLE PRECISION :: aso     = soot oxidation parameter {-}
+      DOUBLE PRECISION :: smwco   = molecular weight of carbon monoxide {kg/kmol}
+c-----
+      DOUBLE PRECISION :: co2ini = co2 part in residual gas or egr {-}
+      DOUBLE PRECISION :: h2oini = h2o part in residual gas or egr {-}
+c-----
+c=======================================================================
+      end module ctsmod
+c=======================================================================
+c-----
+c#######################################################################
+c#######################################################################
+c-----
+c=======================================================================
+      module cydrnoz
+c=======================================================================
+c-----
+      INTEGER :: nidrop = maximum number of droplets {-}
+      INTEGER :: nnozzl = maximum number of nozzles {-}
+      INTEGER :: nibore = maximum number of bores per nozzle {-}
+      INTEGER :: niminj = maximum number of data points for general injection data {-}
+      INTEGER :: nisdis = maximum number of data points for size distribution {-}
+      INTEGER :: nisize = maximum number of data points for size specification {-}
+      INTEGER :: nprliq = maximum number of property sets for liquids {-}
+      INTEGER :: nprflu = maximum number of fluids for a property set {-}
+c-----------------------------------------------------------------------
+c-----spray constants, flags and general variables
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: pi            =  pi number {-}
+      DOUBLE PRECISION :: diamin        = minimum droplet diameter {m}
+      DOUBLE PRECISION :: fstol1        = tolerance parameter 1 {-}
+      DOUBLE PRECISION :: drg999        = drag coefficient {-} 
+      DOUBLE PRECISION :: prefer        = reference pressure {Pa}
+      DOUBLE PRECISION :: dttudi        = turbulent dispersion time-step limiter {s} 
+      DOUBLE PRECISION :: dtcurr        = current subcycle time-step {-}
+      DOUBLE PRECISION :: dtmove        = limiter for droplet movement {s}
+      DOUBLE PRECISION :: timepa        = current start time for integration {s}
+      DOUBLE PRECISION :: timend        = actual time {s}
+      DOUBLE PRECISION :: timeol        = old time {s} 
+      DOUBLE PRECISION :: dtspra        = spray time increment {s}
+      DOUBLE PRECISION :: udropo        = old time-step droplet velocity x {m/s}
+      DOUBLE PRECISION :: vdropo        = old time-step droplet velocity y {m/s}
+      DOUBLE PRECISION :: wdropo        = old time-step droplet velocity z {m/s}
+      DOUBLE PRECISION :: tdropo        = old droplet temperature {K} 
+      DOUBLE PRECISION :: sdropo        = old droplet diameter {-} 
+      DOUBLE PRECISION :: ddropo        = old droplet density {kg/m3} 
+      DOUBLE PRECISION :: cdropo        = old number of droplets per parcel {-} 
+      DOUBLE PRECISION :: uprime        = fluctuation velocity x {m/s}
+      DOUBLE PRECISION :: vprime        = fluctuation velocity y {m/s}
+      DOUBLE PRECISION :: wprime        = fluctuation velocity z {m/s}
+      DOUBLE PRECISION :: xtime1        = averaged number of integration time-steps {-}
+      DOUBLE PRECISION :: xtime2        = averaged number of evaporation time steps {-}
+      DOUBLE PRECISION :: xgravi(3)     = gravitation terms {m/s2}
+      DOUBLE PRECISION :: breakp(100)   = sub-model constants {-}
+      DOUBLE PRECISION :: d10d10        = mean diameter d10 {m} 
+      DOUBLE PRECISION :: d30d30        = mean diameter d30 {m}
+      DOUBLE PRECISION :: d32d32        = mean diameter d30 (SMD) {m}
+      DOUBLE PRECISION :: dvol10        = mean diameter of 10% of the smallest droplets {m} 
+      DOUBLE PRECISION :: dvol50        = mean diameter of 50% of the smallest droplets {m}
+      DOUBLE PRECISION :: dvol90        = mean diameter of 90% of the smallest droplets {m}
+      DOUBLE PRECISION :: fdelet        = mass defect by lost droplets this time step {kg}
+      DOUBLE PRECISION :: fdeser        = mass of fuel desert. this time step {kg}
+      DOUBLE PRECISION :: fevolv        = mass of vapor evolved of this time-step {kg} 
+      DOUBLE PRECISION :: fimpin        = mass of fuel imping. this time step {kg}
+      DOUBLE PRECISION :: flodrp        = never used {-}
+      DOUBLE PRECISION :: fdelsu        = total mass defect by lost droplets {kg}
+      DOUBLE PRECISION :: fdessu        = total liquid mass deserted {kg}
+      DOUBLE PRECISION :: fevosu        = total mass of vapor evolved [kg} 
+      DOUBLE PRECISION :: fimpsu        = total mass of fuel impinged {kg}
+      DOUBLE PRECISION :: finjsu        = total mass of fuel injected {kg}
+      DOUBLE PRECISION :: wgtmol(9)     = molecular weight {kg/kmol}
+      DOUBLE PRECISION :: difvol(9)     = diffusion volume {-}
+      DOUBLE PRECISION :: tcritf(9)     = critical temperature {K}
+      DOUBLE PRECISION :: pcritf(9)     = critical pressure {Pa}
+      DOUBLE PRECISION :: tmeltf(9)     = melting temperature {K}
+      DOUBLE PRECISION :: zalpha(0:100) = lookuptable of values of inverse Gaussian function {-}
+      DOUBLE PRECISION :: zalph1(0:100) = lookuptable of values of inverse Gaussian function {-}, currently never used
+      DOUBLE PRECISION :: zalph2(0:100) = lookuptable of values of inverse Gaussian function {-}, currently never used
+      DOUBLE PRECISION :: c1spra        = start crank angle {deg} 
+      DOUBLE PRECISION :: rpspra        = engine speed {rpm}
+      DOUBLE PRECISION :: facint        = intergration factor {-}
+      DOUBLE PRECISION :: usespf(100)   = user constants {-}
+      DOUBLE PRECISION :: facdir(3)     = face direction {-}
+      DOUBLE PRECISION :: ararar        = constant for reference conditions [-} 
+c-----
+      INTEGER :: ndropl(3)  = end-index of droplet array {-}
+      INTEGER :: ndrops     = number of droplets remaining in system {-}
+      INTEGER :: ndropx     = current droplet index within main loop LDROPS(NDROPX) {-}
+      INTEGER :: numdrp     = unique droplet number for identification stored on ndropn {-}
+      INTEGER :: nadddr     = never used {-}
+      INTEGER :: nintro     = number of droplet locations in radial direction {-}
+      INTEGER :: nsizes     = number of droplet sizes introduced {-}
+      INTEGER :: ncircd     = number of droplet locations in circumferential direction {-}
+cmb      INTEGER :: nnozzl     = max. number of nozzles {-}
+cmb      INTEGER :: nisize     = max. number of data points for size specification {-}
+      INTEGER :: ndrorz     = never used {-}
+      INTEGER :: ninjec     = number of droplets injected {-}
+      INTEGER :: isprst     = initialise spray {-}
+      INTEGER :: naddno     = never used {-}
+      INTEGER :: naddfi     = never used {-}
+      INTEGER :: nadden     = never used {-}
+      INTEGER :: nidrop     = max. number of droplets {-}
+      INTEGER :: niface     = total number of spray faces {-}
+      INTEGER :: ninozz     =  never used {-}
+cmb      INTEGER :: nibore     = max. number of bores per nozzle {-}
+cmb      INTEGER :: niminj     = max. number of data points for general injection data {-}
+cmb      INTEGER :: nisdis     = max. number of data points for size distribution {-}
+      INTEGER :: ndrdel     = number of lost droplets this time step {-}
+      INTEGER :: ndrdes     = number of droplets deserted this time step {-}
+      INTEGER :: ndreva     = number of droplets evaporated this time step {-}
+      INTEGER :: ndrimp     = number of droplets impinged this time step {-}
+      INTEGER :: mrdspr     = random number generator (start index) {-}
+      INTEGER :: mrdnsp     = random number generator (start index) {-}
+      INTEGER :: ndelsu     = total number of lost droplets {-}
+      INTEGER :: ndessu     = total number of droplets deserted {-}
+      INTEGER :: nevasu     = total number of droplets evaporated {-}
+      INTEGER :: nimpsu     = total number of droplets impinged {-}
+      INTEGER :: ninjsu     = total number of droplets introduced {-}
+      INTEGER :: ndrinj     = number of droplets injected {-}
+      INTEGER :: ndrnoz     = number of droplets injected from nozzles {-}
+      INTEGER :: ndrfil     = number of droplets injected from files {-}
+      INTEGER :: ndrpri     = never used {-}
+      INTEGER :: ndruse     = number of droplets injected from user functions {-} 
+      INTEGER :: ndrwaf     = number of droplets injected from wall film {-}
+      INTEGER :: ncespr     = number of cells {-}
+      INTEGER :: nspspr     = starting number of spray cells {-}
+      INTEGER :: nepspr     = ending number of spray cells {-}
+      INTEGER :: nusvar     = number of real user variables {-}
+      INTEGER :: nusvai     = number of integer user variables {-}
+      INTEGER :: mtime1     = maximum number of integration time steps {-}
+      INTEGER :: mtime2     = maximum number of evaporation time-steps {-}
+      INTEGER :: mevapo     = current number of evaporation time-steps {-}
+      INTEGER :: nuinte     =  maximum allowed number of integration time steps {-}
+cmb      INTEGER :: nprliq     = max. number of property sets for liquids {-}
+cmb      INTEGER :: nprflu     = max. number of fluids for a property set {-}
+      INTEGER :: ieulag(8)  = coupling flags {-}
+      INTEGER :: ispsol(5)  = solver flags {-}
+      INTEGER :: iforce(5)  = force flags {-}
+      INTEGER :: isflag(30) = flag for output quantities {-}
+      INTEGER :: ievapo     = evaporation flag {-}
+      INTEGER :: iturdi     = turbulent dispersion flag {-} 
+      INTEGER :: iwalli     = wall interaction flag {-}
+      INTEGER :: ibreak     = break-up flag {-}
+      INTEGER :: icolli     = collision flag {-}
+      INTEGER :: iraper     =  radial perturbation flag {-}
+      INTEGER :: interp     = interpolation flag {-}
+      INTEGER :: irefcc(3)  = monitoring cells {-}
+      INTEGER :: irefdd(6)  = monitoring droplets {-}
+      INTEGER :: iyfini(5)  = droplet introduction option flags {-}
+      INTEGER :: ichild(5)  = number of droplets introduced by different submodels {-}
+      INTEGER :: isheet     = sheet model flag {-}
+      INTEGER :: iwallf     = impingement for wallfilm {-}
+      INTEGER :: ivoidf     = void fraction flag {-}
+      INTEGER :: irefin     = reference condition flag {-}
+      INTEGER :: iuseou     = user output flag {-}
+      INTEGER :: inozfl     = nozzle model flag {-}
+      INTEGER :: idragf     = drag force flag {-}
+      INTEGER :: iconde     = condensation flag {-}
+      INTEGER :: ikivas     = momentum buffering {-}
+      INTEGER :: ispmog     = currently not used {-}
+      INTEGER :: isprez     = currently not used {-}
+      INTEGER :: nspsca     = number of scalars {-}
+      INTEGER :: nspfac     = currently not used {-}
+      INTEGER :: iydrag     = flag for different drag laws {-}
+      INTEGER :: iyfnam     = number of filenames {-}
+      INTEGER :: ifluid     = fluid index {-}
+      INTEGER :: iusent     =  user entrainment {-}
+      INTEGER :: itaskx     = flag for calculation task {-}
+      INTEGER :: itspra     = iteration {-}
+      INTEGER :: nuspve     = total number of spray vertices {-}
+      INTEGER :: nlodrp     = number of lost droplets [-}
+      INTEGER :: insarb     = currently not used {-}
+      INTEGER :: inearb     = currently not used {-}
+      INTEGER :: icspra     = injection activation {-}
+      INTEGER :: ieospr     = extended spray output flag {-}
+      INTEGER :: newcel     = new cell marker {-}
+      INTEGER :: nifspr     = number of spray cell faces {-}
+      INTEGER :: nbfspr     = number of spray boundary faces {-}
+      INTEGER :: nrespr      = number of spray boundary regions {-}
+c-----
+      CHARACTER(LEN=256) :: csrent      = string for userfunction of spray entrainment {-}
+      CHARACTER(LEN=256) :: csrdra      = string for userfunction of drag, heat and masstransfer {-}
+      CHARACTER(LEN=256) :: lmodel(10)  = string for model activation {-}
+      CHARACTER(LEN=256) :: ifname(100) = filenames for .spa option  increase to 100 elements {-}
+      CHARACTER(LEN=256) :: csrpar      = string for user function {-}
+      CHARACTER(LEN=256) :: naspra      = currently not used {-}
+      CHARACTER(LEN=256) :: hydfil(100) = string for hydsim file names {-}
+      CHARACTER(LEN=256) :: intfil(100) = string for interface file names {-}
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: syvecx(2)   = interface x symmetry vector {-}
+      DOUBLE PRECISION :: syvecy(2)   = interface y symmetry vector {-}
+      DOUBLE PRECISION :: syvecz(2)   = interface z symmetry vector {-}
+      DOUBLE PRECISION :: datime(100) = times for interface data sets {-}
+      DOUBLE PRECISION :: vecnxo      = old nozzle x direction {-}
+      DOUBLE PRECISION :: vecnyo      = old nozzle y direction {-}
+      DOUBLE PRECISION :: vecnzo      = old nozzle z direction {-}
+      DOUBLE PRECISION :: faarea      = currently not used {-}
+      DOUBLE PRECISION :: facavi      = currently not used
+      DOUBLE PRECISION :: oricxo      = old orifice x centre {-}
+      DOUBLE PRECISION :: oricyo      = old orifice y centre {-}
+      DOUBLE PRECISION :: oriczo      = old orifice z centre {-}
+      DOUBLE PRECISION :: orivxo      = old orifice x direction {-}
+      DOUBLE PRECISION :: orivyo      = old orifice y direction {-}
+      DOUBLE PRECISION :: orivzo      = old orifice z direction {-}
+c-----
+      INTEGER :: nusypl = number of symmetry planes {-}
+      INTEGER :: macofl = mass correction flag {-}
+      INTEGER :: nuoffa = number of faces {-}
+      INTEGER :: nuofbl = number of blobs {-}
+      INTEGER :: opribr = currently not used {-}
+      INTEGER :: iprity = primary break-up type {-}
+      INTEGER :: nspsec = number of sectors in spray calculation {-}
+      INTEGER :: nozsec = number of sectors in nozzle calculation {-}
+      INTEGER :: ndaset = number of data sets {-}
+      INTEGER :: inteon = interface on  {-}
+      INTEGER :: nintfa = number of interface faces {-}
+      INTEGER :: ipribr = primary break-up flag {-}
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: sumtum(ncell) = u momentum source {m/s2}
+      DOUBLE PRECISION :: svmtum(ncell) = v momentum source {m/s2}
+      DOUBLE PRECISION :: swmtum(ncell) = w momentum source {m/s2}
+      DOUBLE PRECISION :: sumtup(ncell) = linearized u momentum source {}
+      DOUBLE PRECISION :: ssmass(ncell) = mass source {kg/s}
+      DOUBLE PRECISION :: ssmasc(ncell) = species mass source {kg/s}
+      DOUBLE PRECISION :: senerg(ncell) = energy source {J/s}
+      DOUBLE PRECISION :: sturbk(ncell) = tke source {m2/s3}
+      DOUBLE PRECISION :: sturbe(ncell) = dissipation source {m2/s4}
+      DOUBLE PRECISION :: temtem(ncell) = temporary temperature {K}
+      DOUBLE PRECISION :: hentem(ncell) = temporary enthalpy {J/kg}
+      DOUBLE PRECISION :: voispr(ncell) = void fraction {-}
+      DOUBLE PRECISION :: dpdxdp(ncell) = pressure gradient {Pa/m}
+c-----
+      INTEGER :: nfaces(ncell) = number of faces per cell {-}
+      INTEGER :: ifatfa(ncell) = currently not used {-}
+      INTEGER :: istart(ncell) = start index of faces for a cell {-}
+      INTEGER :: idummm(ncell) = dummy array {-}
+      INTEGER :: icellm(ncell) = dummy array for cell {-}
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: fadata(niface) = currently not used {-}
+      DOUBLE PRECISION :: facexv(niface) = currently not used {-}
+      DOUBLE PRECISION :: faceyv(niface) = currently not used {-}
+      DOUBLE PRECISION :: facezv(niface) = currently not used {-}
+c-----
+      INTEGER :: ifadat(niface) = currently not used {-}
+      INTEGER :: ifaces(niface) = currently not used {-}
+      INTEGER :: ipfafa(niface) = currently not used {-}
+      INTEGER :: ipoire(niface) = currently not used {-}
+      INTEGER :: ipoiin(niface) = currently not used {-}
+      INTEGER :: ipoinv(niface) = currently not used {-}
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: delta1(nnozzn) = opening angle of hole axis of nozzle {deg}
+      DOUBLE PRECISION :: delta2(nnozzn) = start angle of first hole projected to diameter plane {deg}
+      DOUBLE PRECISION :: delta3(nnozzn) = sector angle {deg}
+      DOUBLE PRECISION :: deltdi(nnozzn) = offsetangle between holes of nozzle {deg}
+      DOUBLE PRECISION :: xpinjc(nnozzn) = x coordinate of location of nozzle {m}
+      DOUBLE PRECISION :: ypinjc(nnozzn) = y coordinate of location of nozzle {m}
+      DOUBLE PRECISION :: zpinjc(nnozzn) = z coordinate of location of nozzle {m}
+      DOUBLE PRECISION :: xvinjn(nnozzn) = x coordinate of direction of nozzle {m}
+      DOUBLE PRECISION :: yvinjn(nnozzn) = y coordinate of direction of nozzle {m}
+      DOUBLE PRECISION :: zvinjn(nnozzn) = z coordinate of direction of nozzle {m}
+      DOUBLE PRECISION :: xvinjs(nnozzn) = x coordinate of direction of symmetry plane {m}
+      DOUBLE PRECISION :: yvinjs(nnozzn) = y coordinate of direction of symmetry plane {m}
+      DOUBLE PRECISION :: zvinjs(nnozzn) = z coordinate of direction of symmetry plane {m}
+      DOUBLE PRECISION :: diainj(nnozzn) = diameter of nozzle {m}
+      DOUBLE PRECISION :: dinold(nnozzn) = length / diameter ratio {-}
+      DOUBLE PRECISION :: dinord(nnozzn) = radius / diameter ratio {-}
+      DOUBLE PRECISION :: dinodi(nnozzn) = flag blob size correction on / off {-}
+      DOUBLE PRECISION :: tempcr(nnozzn) = critical Temperature {K}
+      DOUBLE PRECISION :: tinbeg(nnozzn) = start of injection of a nozzle {s}
+      DOUBLE PRECISION :: tinend(nnozzn) = end of injection of a nozzle {s}
+      DOUBLE PRECISION :: tinjec(nnozzn) = start temperature of injected fluid of a nozzle {K}
+      DOUBLE PRECISION :: finjec(nnozzn) = currently injected mass from diagram {kg m2}
+      DOUBLE PRECISION :: tfminj(nnozzn) = total volume injected of a nozzle {m3}
+      DOUBLE PRECISION :: deninj(nnozzn) = density of injected fluid of a nozzle {kg/m3}
+      DOUBLE PRECISION :: radilc(nnozzn) = radial perturbation in % [0:1] of mean velocity {m}
+      DOUBLE PRECISION :: pdf_mi(nnozzn) = minimum droplet probability {-}
+c-----------------------------------------------------------------------
+c-----nozzle flow model
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: umeanv(nnozzn) = original injection velocity {m/s}
+      DOUBLE PRECISION :: diaeff(nnozzn) = effective hole diameter {m}
+      DOUBLE PRECISION :: shepar(nnozzn) = sheet model parameter {-}
+      DOUBLE PRECISION :: shevel(nnozzn) = sheet model parameter {-}
+      DOUBLE PRECISION :: shepre(nnozzn) = sheet model parameter {-}
+      DOUBLE PRECISION :: sheaaa(nnozzn) = sheet model parameter {-}
+      DOUBLE PRECISION :: shebbb(nnozzn) = sheet model parameter {-}
+      DOUBLE PRECISION :: sheeta(nnozzn) = sheet model parameter {-}
+c-----------------------------------------------------------------------
+c-----hydsim interface
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: hyddia(nnozzn) = Hydsim hole diameter {m}
+      DOUBLE PRECISION :: hydrpm(nnozzn) = Hydsim rpm {1/min}
+      DOUBLE PRECISION :: hydbeg(nnozzn) = Hydsim injection begin {s}
+      DOUBLE PRECISION :: hydtim(nnozzn) = Hydsim current time {s}
+      DOUBLE PRECISION :: hydend(nnozzn) = Hydsim injection end {s}
+      DOUBLE PRECISION :: hydmas(nnozzn) = Hydsim currently injected mass {kg}
+      DOUBLE PRECISION :: hydare(nnozzn) = Hydsim exit area {m2}
+      DOUBLE PRECISION :: hydang(nnozzn) = Hydsim spray angle {deg}
+      DOUBLE PRECISION :: hydpa1(nnozzn) = Hydsim parameter {-}
+      DOUBLE PRECISION :: hydpa2(nnozzn) = Hydsim parameter {-}
+      DOUBLE PRECISION :: hydpa3(nnozzn) = Hydsim parameter {-}
+c-----------------------------------------------------------------------
+c-----nozzle interface
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: cbrsta(nnozzn) = nozzle time 1 {s}
+      DOUBLE PRECISION :: cbrend(nnozzn) = nozzle time 2 {s}
+c-----------------------------------------------------------------------
+c-----primary breakup
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: conpri(10,nnozzn) = constants for primary breakup {-}
+c-----------------------------------------------------------------------
+c-----general spray
+c-----------------------------------------------------------------------
+      INTEGER :: nholv1(nnozzn) = number of points in timediagramm of outer hole {-}
+      INTEGER :: nholv2(nnozzn) = number of points in timediagramm of inner hole {-}
+      INTEGER :: nangs1(nnozzn) = number of points in spray outer cone angle diagram {-}
+      INTEGER :: nangs2(nnozzn) = number of points in spray inner cone angle diagram {-}
+      INTEGER :: ninjsp(nnozzn) = number of injection diagram specifications {-}
+      INTEGER :: nsdsdi(nnozzn) = number of points in sizedistribution diagramm	{-}
+      INTEGER :: nfluid(nnozzn) = fluid type number {-}
+      INTEGER :: nnbore(nnozzn) = number of holes / nozzle {-}
+      INTEGER :: naveld(nnozzn) = number of points in velocitydistribution diagramm {-}
+      INTEGER :: n_diag(nnozzn) = number of diagramms for size distribution per nozzle {-}
+      INTEGER :: lintro(nnozzn) = flag for Injection {-}
+      INTEGER :: nozdu1(nnozzn) = nozzle dummy array 1 {-}
+      INTEGER :: nozdu2(nnozzn) = nozzle dummy array 2 {-}
+      INTEGER :: ispgas(nnozzn) = spray gas jet activation {-}
+      INTEGER :: iacrap(nnozzn) = radial perturbation activation {-}
+      INTEGER :: iacnoz(nnozzn) = nozzle activation flag {-}
+      INTEGER :: iprnoz(nnozzn) = primary break-up for nozzle {-}
+c-----------------------------------------------------------------------
+c-----nozzle flow model
+c-----------------------------------------------------------------------
+      INTEGER :: ishmod(nnozzn) = currently not used {-}
+      INTEGER :: ishtyp(nnozzn) = sheet model type {-}
+c-----------------------------------------------------------------------
+c-----hydsim interface
+c-----------------------------------------------------------------------
+      INTEGER :: iachyd(nnozzn) = Hydsim interface activation {-}
+      INTEGER :: ibohyd(nnozzn) = Hydsim number of bores {-}
+c-----------------------------------------------------------------------
+c-----nozzle interface
+c-----------------------------------------------------------------------
+      INTEGER :: iacint(nnozzn) = Nozzle interface activation {-}
+c-----------------------------------------------------------------------
+c-----primary breakup
+c-----------------------------------------------------------------------
+      INTEGER :: iacpri(nnozzn) = Primary breakup activation {-}
+c-----------------------------------------------------------------------
+c-----bore arrays : nboren*nnozzn
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: xpborc(nboren*nnozzn) = x coordinate of hole centre {m}
+      DOUBLE PRECISION :: ypborc(nboren*nnozzn) = y coordinate of hole centre {m}
+      DOUBLE PRECISION :: zpborc(nboren*nnozzn) = z coordinate of hole centre {m}
+      DOUBLE PRECISION :: xvborn(nboren*nnozzn) = x coordinate of hole normalvector {m}
+      DOUBLE PRECISION :: yvborn(nboren*nnozzn) = y coordinate of hole normalvector {m}
+      DOUBLE PRECISION :: zvborn(nboren*nnozzn) = z coordinate of hole normalvector {m}
+      DOUBLE PRECISION :: xvbor1(nboren*nnozzn) = x coordinate of outer hole intersectionpoint {m}
+      DOUBLE PRECISION :: yvbor1(nboren*nnozzn) = y coordinate of outer hole intersectionpoint {m}
+      DOUBLE PRECISION :: zvbor1(nboren*nnozzn) = z coordinate of outer hole intersectionpoint {m}
+      DOUBLE PRECISION :: xvbor2(nboren*nnozzn) = x coordinate of inner hole intersectionpoint {m}
+      DOUBLE PRECISION :: yvbor2(nboren*nnozzn) = y coordinate of inner hole intersectionpoint {m}
+      DOUBLE PRECISION :: zvbor2(nboren*nnozzn) = z coordinate of inner hole intersectionpoint {m}
+      DOUBLE PRECISION :: pebore(nboren*nnozzn) = maximum distance droplet hole centre {m}
+c-----------------------------------------------------------------------
+c-----spray file arrays : nininj, nisdis, nisiz
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: timho1(nininj) = spacing of time-axis of outer hole {-}
+      DOUBLE PRECISION :: timho2(nininj) = spacing of time-axis of inner hole {-}
+      DOUBLE PRECISION :: diabo1(nininj) = outer diameter of hole {m}
+      DOUBLE PRECISION :: diabo2(nininj) = inner diameter of hole {m}
+      DOUBLE PRECISION :: tangl1(nininj) = spacing of time-axis of outer spray cone diagram {-}
+      DOUBLE PRECISION :: tangl2(nininj) = spacing of time-axis of inner spray cone diagram {-}
+      DOUBLE PRECISION :: sbeta1(nininj) = outer spray cone angle {deg}
+      DOUBLE PRECISION :: sbeta2(nininj) = inner spray cone angle {deg}
+      DOUBLE PRECISION :: tirate(nininj) = spacing of time-axis of injection diagram {-}
+      DOUBLE PRECISION :: fsminj(nininj) = mass distribution {kg m2}
+      DOUBLE PRECISION :: timvel(nininj) = spacing of time-axis of velocity variations {-}
+      DOUBLE PRECISION :: cvelax(nininj) = startingvelocity predefined or calculated from massflux + continuity {m/s}
+c-----
+      DOUBLE PRECISION :: sdsdis(nisdis) = probality distribution {m}
+      DOUBLE PRECISION :: sizedr(nisdis) = size distribution {m}
+      DOUBLE PRECISION :: dumno1(nisdis) = dummy array for droplet size distribution {-}
+      DOUBLE PRECISION :: dumno2(nisdis) = dummy array for droplet size distribution {-}
+c-----
+      DOUBLE PRECISION :: sizesp(nisiz) = droplet size classes {-}
+c-----------------------------------------------------------------------
+c-----droplet arrays : nidrop
+c-----------------------------------------------------------------------
+c-----general spray
+      DOUBLE PRECISION :: xdropn(nidrop)        = new x location of droplet {m}
+      DOUBLE PRECISION :: ydropn(nidrop)        = new y location of droplet {m}
+      DOUBLE PRECISION :: zdropn(nidrop)        = new z location of droplet {m}
+      DOUBLE PRECISION :: udropn(nidrop)        = new u velocity of droplet {m/s}
+      DOUBLE PRECISION :: vdropn(nidrop)        = new v velocity of droplet {m/s}
+      DOUBLE PRECISION :: wdropn(nidrop)        = new w velocity of droplet {m/s}
+      DOUBLE PRECISION :: sdropn(nidrop)        = new diameter of droplet {m}
+      DOUBLE PRECISION :: ddropn(nidrop)        = new density of droplet {kg/m3}
+      DOUBLE PRECISION :: cdropn(nidrop)        = new number of droplets of a parcel {-}
+      DOUBLE PRECISION :: udropt(nidrop)        = turbulent u velocity of droplet {m/s}
+      DOUBLE PRECISION :: vdropt(nidrop)        = turbulent v velocity of droplet {m/s}
+      DOUBLE PRECISION :: wdropt(nidrop)        = turbulent w velocity of droplet {m/s}
+      DOUBLE PRECISION :: tdlife(nidrop)        = droplet life time {s}
+      DOUBLE PRECISION :: retudi(nidrop)        = remaining turbulent dispersion time {s}
+      DOUBLE PRECISION :: tdropn(nidrop)        = new temperature of droplet {K}
+      DOUBLE PRECISION :: dlesst(nidrop)        = accumulated shed mass {kg}
+      DOUBLE PRECISION :: tbreak(nidrop)        = breakup time of droplet {s}
+      DOUBLE PRECISION :: distor(nidrop)        = distortion {-}
+      DOUBLE PRECISION :: disdot(nidrop)        = distortion velocity {1/s}
+      DOUBLE PRECISION :: sdropz(nidrop)        = original diameter of droplet {m}
+      DOUBLE PRECISION :: ddropz(nidrop)        = original density of droplet {kg/m3}
+      DOUBLE PRECISION :: cdropz(nidrop)        = number of droplets of a parcel {-}
+      DOUBLE PRECISION :: fipa01(nidrop)        = break-up variable {-}
+      DOUBLE PRECISION :: fipa02(nidrop)        = break-up variable {-}
+      DOUBLE PRECISION :: rdudro(nidrop)        = real dummy droplet array {-}
+      DOUBLE PRECISION :: reausr(nusvar,nidrop) = real user array {-}
+c-----------------------------------------------------------------------
+c-----primary breakup
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: pritke(nidrop) = Droplet turbulence kinetic energy {m2/s2}
+      DOUBLE PRECISION :: pridis(nidrop) = Droplet dissipation {m2/s3}
+      DOUBLE PRECISION :: privol(nidrop) = Droplet volume fraction {-}
+      DOUBLE PRECISION :: pribud(nidrop) = Droplet bubble diameter {m}
+      DOUBLE PRECISION :: pribuv(nidrop) = Droplet bubble collapse velocity {m/s}
+      DOUBLE PRECISION :: prishe(nidrop) = Droplet shed mass {kg}
+      DOUBLE PRECISION :: prirat(nidrop) = Final droplet breakup rate {-}
+      DOUBLE PRECISION :: priara(nidrop) = Droplet aerodynamic breakup rate {-}
+      DOUBLE PRECISION :: pritra(nidrop) = Droplet turbulent breakup rate {-}
+      DOUBLE PRECISION :: prione(nidrop) = Droplet primary breakup identifier {-}
+c-----------------------------------------------------------------------
+c-----mass fractions
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: ymfspr(nidrop) = mass fractions {-}, (currently never used)
+      DOUBLE PRECISION :: ymfspo(nidrop) = old time-step mass fractions {-}, (currently never used)
+c-----------------------------------------------------------------------
+c-----general spray
+c-----------------------------------------------------------------------
+      INTEGER :: ncelln(nidrop)        = number of cell of droplet location {-}
+      INTEGER :: nboren(nidrop)        = number of hole where droplet started {-}
+      INTEGER :: nozzln(nidrop)        = number of nozzle where droplet started {-}
+      INTEGER :: ldrops(nidrop)        = droplet pointer array  {-}
+      INTEGER :: ndropn(nidrop)        = number of droplet for identification {-}
+      INTEGER :: imping(nidrop)        = impingement array {-}
+      INTEGER :: nwalli(nidrop)        = wall interaction flag {-}
+      INTEGER :: iflind(nidrop)        = currently not used {-}
+      INTEGER :: idudro(nusvai,nidrop) = integer dummy droplet array {-}
+      INTEGER :: intusr(nidrop)        = user interface {-}
+      INTEGER :: nprops(nidrop)        = property set number {-}
+c-----------------------------------------------------------------------
+c-----primary breakup
+c-----------------------------------------------------------------------
+      INTEGER :: nflpri(nidrop) = droplet primary breakup identifier {-}
+      INTEGER :: nprity(nidrop) = droplet primary breakup identifier {-}
+c-----------------------------------------------------------------------
+c-----nozzle interface arrays : nintfa
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: faccox(nintfa) = Face x-coordinate {m}
+      DOUBLE PRECISION :: faccoy(nintfa) = Face y-coordinate {m}
+      DOUBLE PRECISION :: faccoz(nintfa) = Face z-coordinate {m}
+      DOUBLE PRECISION :: facvex(nintfa) = Face u-velocity {m/s}
+      DOUBLE PRECISION :: facvey(nintfa) = Face v-velocity {m/s}
+      DOUBLE PRECISION :: facvez(nintfa) = Face w-velocity {m/s}
+      DOUBLE PRECISION :: facde1(nintfa) = Face density 1 {kg/m3}
+      DOUBLE PRECISION :: facde2(nintfa) = Face density 2 {kg/m3}
+      DOUBLE PRECISION :: factke(nintfa) = Face tke {m2/s2}
+      DOUBLE PRECISION :: facdis(nintfa) = Face dissipation {m2/s3}
+      DOUBLE PRECISION :: facvol(nintfa) = Face volume fraction {-}
+      DOUBLE PRECISION :: facare(nintfa) = Face area {m2}
+c-----------------------------------------------------------------------
+c-----property set arrays : nprliq, nprliq*nprflu
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: ymfflu(nprliq) = start distribution of mass fractions {-}
+      DOUBLE PRECISION :: temnpr(nprliq) = property set temperature {K}
+c-----
+      INTEGER :: ispsca(nprliq*nprflu) = nozzle scalar pointer{-}
+      INTEGER :: isosca(nprliq*nprflu) = source scalar pointer{-}
+      INTEGER :: isnsca(nprliq*nprflu) = nozzle source pointer{-}
+      INTEGER :: numflu(nprliq*nprflu) = number of fluids per property set {-}
+      INTEGER :: indflu(nprliq*nprflu) = index of fluids per property set {-}
+c-----
+c=======================================================================
+      end module cydrnoz
+c=======================================================================
+c-----
+c#######################################################################
+c#######################################################################
+c-----
+c=======================================================================
+       module cwalmod
+c=======================================================================
+c-----
+      INTEGER :: nmwfve = actual number of wfm nodes {-}
+      INTEGER :: nmwfce = actual number of wfm cells {-}
+c-----
+      DOUBLE PRECISION :: wfcrit       = critical film thickness {m}
+      DOUBLE PRECISION :: xwffon       = film feeder start time {s}
+      DOUBLE PRECISION :: xwfoff       = film feeder end time {s}
+      DOUBLE PRECISION :: wsourc       = total system mass source of current timestep {kg}
+      DOUBLE PRECISION :: xwfent       = total entrained mass of current timestep {kg}
+      DOUBLE PRECISION :: xwfvap       = total evaporated mass of current timestep {kg}
+      DOUBLE PRECISION :: wvelim       = upper film velocity limit {m/s}
+      DOUBLE PRECISION :: wfluxm       = maximum wall heat flux {W/m2}
+      DOUBLE PRECISION :: wvapra       = maximum evaporation rate {kg/s/m2}
+      DOUBLE PRECISION :: wvapli       = evaporation rate limit {kg/s/m2}
+      DOUBLE PRECISION :: wvapxm       = evaporation rate multiplier {-}
+      DOUBLE PRECISION :: wturbt       = turbulent transition film reynolds-number {-}
+      DOUBLE PRECISION :: wwebcr       = onset of entrainment weber-number {-}
+      DOUBLE PRECISION :: wmshit       =  mean number of wall shear iterations {-}
+      DOUBLE PRECISION :: wnseed       = seed number for random generator {-}
+      DOUBLE PRECISION :: wdropa       = minimum entrained droplets per parcel {-}
+      DOUBLE PRECISION :: wentac       = accumulated entrained mass {kg}
+      DOUBLE PRECISION :: wcpu01       = wallfilm cpu time 1 {s}
+      DOUBLE PRECISION :: wcpu02       = wallfilm cpu time 2 {s} 
+      DOUBLE PRECISION :: filmdt       = film time step {s} 
+      DOUBLE PRECISION :: ficour       = maximum ocurring film courant number {-} 
+      DOUBLE PRECISION :: rezmin       = minimum vector length to perform rezone {m}
+      DOUBLE PRECISION :: rezmax       = maximum vector length to perform rezone {m}
+      DOUBLE PRECISION :: wfloss       = film loss trough inlets/outlets {kg}
+      DOUBLE PRECISION :: woldms       = currently not used {-}
+      DOUBLE PRECISION :: xwtvap       = total accumulated evaporated film mass {kg}
+      DOUBLE PRECISION :: wticrt       = temperature iteration limit {-}
+      DOUBLE PRECISION :: wfairm       = air molecular weight {kg/kmol}
+      DOUBLE PRECISION :: wfaird       = air diffusion volume {-}
+      DOUBLE PRECISION :: wsplsm       = splashed/impinged wallfilm fraction {%}
+      DOUBLE PRECISION :: wruptm       = ruptured/impinged wallfilm fraction {%}
+      DOUBLE PRECISION :: wrseed(97)   = seed number array for random generator
+      DOUBLE PRECISION :: xgrawa(3)    = temporal values for gravity
+      DOUBLE PRECISION :: wusrcv(100)  = wallfilm user control values
+      DOUBLE PRECISION :: rwctrl(100)  = wallfilm real control variables
+      DOUBLE PRECISION :: wfcomr(20)   = wall roughness parameters
+      DOUBLE PRECISION :: winmas(1000) = introduced feeder cell mass flow {kg/s}
+      DOUBLE PRECISION :: wintem(1000) = temperature of fed film {K}
+c-----
+      INTEGER :: iwfini       = film input initialisation (spray, feeder) {-}
+      INTEGER :: iwfedf       = feeder input flag (massflow, thickness) {-}
+      INTEGER :: iwfeed       = number of feeder cells {-}
+      INTEGER :: iwcalc       = calculation status flag {-}
+      INTEGER :: iwbala       = balancing percentage {%}
+      INTEGER :: itwmax       = upper limit of wall shear iterations {-}
+      INTEGER :: iypcel       = number of cells in laminar sublayer {-}
+      INTEGER :: maxcyc       = permitted number of film modul subcycle {-}
+      INTEGER :: iwlogf       = log-file output control flag {-}
+      INTEGER :: ifturb       = turbulence flag (0=lam, 1=turb) {-}
+      INTEGER :: iwnpar       = number of new entrained parcels per timestep {-}
+      INTEGER :: iwdrpm       = entrained droplet size model flag {-}
+      INTEGER :: iwvapm       = evaporation submodel flag {-}
+      INTEGER :: iwentm       = entrainment submodel flag {-}
+      INTEGER :: iwvenh       = evaporation wave enhancement flag {-}
+      INTEGER :: iwshup       = number of reks-update iterations {-}
+      INTEGER :: iwread       = wallfilm file read flag {-}
+      INTEGER :: iwengy       = energy equation submodel flag {-}
+      INTEGER :: iwexpt       = wallfilm expert mode flag {-}
+      INTEGER :: iwoflo       = currently not used {-}
+      INTEGER :: iwcell       = actual number of wallfilm cells {-}
+      INTEGER :: iwcelo       = old actual number of wallfilm cells {-}
+      INTEGER :: itprof       = never used {-}
+      INTEGER :: iwitnu       = never used {-}
+      INTEGER :: iprofc(0:18) = never used {-}
+      INTEGER :: iprofb(0:18) = never used {-}
+      INTEGER :: iwsolv(100)  = wallfilm solution flags {-}
+      INTEGER :: iwflag(100)  = wallfilm output flags {-}
+      INTEGER :: iwfusr(100)  = wallfilm user flags {-}
+      INTEGER :: iwfadr(1000) = feeder cell address (boundary cell) {-}
+      INTEGER :: iwfbnd(1000) = feeder cell boundary number {-}
+      INTEGER :: iwctrl(100)  = wallfilm integer control variables {-}
+      INTEGER :: nwscyc       = number of wallfilm subcycles {-}
+      INTEGER :: nwapro       = wallfilm property set {-}
+c-----
+      CHARACTER(LEN=256) :: chawal = never used {-}
+c-----------------------------------------------------------------------
+c-----face arrays : nmwfce
+c-----------------------------------------------------------------------
+       DOUBLE PRECISION :: tauwf1(nmwfce) = film shear stress x {N/m2}
+       DOUBLE PRECISION :: tauwf2(nmwfce) = film shear stress y {N/m2}
+       DOUBLE PRECISION :: tauwf3(nmwfce) = film shear stress z {N/m2}
+c-----
+       DOUBLE PRECISION :: hwfilm(nmwfce) = film thickness {m}
+       DOUBLE PRECISION :: hwfilo(nmwfce) = old time-step film thickness {m}
+       DOUBLE PRECISION :: wfmass(nmwfce) = film mass {kg}
+       DOUBLE PRECISION :: wfmaso(nmwfce) = old time-step film mass {kg}
+c-----
+       DOUBLE PRECISION :: utauw1(nmwfce) = film velocity x due to shear stress {m/s}
+       DOUBLE PRECISION :: utauw2(nmwfce) = film velocity y due to shear stress {m/s}
+       DOUBLE PRECISION :: utauw3(nmwfce) = film velocity z due to shear stress {m/s}
+c-----
+       DOUBLE PRECISION :: ugrav1(nmwfce) = film velocity x due to gravity {m/s}
+       DOUBLE PRECISION :: ugrav2(nmwfce) = film velocity y due to gravity {m/s}
+       DOUBLE PRECISION :: ugrav3(nmwfce) = film velocity z due to gravity {m/s}
+c-----
+       DOUBLE PRECISION :: wfvel1(nmwfce) = film velocity x interpolated for postprocessing {m/s}
+       DOUBLE PRECISION :: wfvel2(nmwfce) = film velocity y interpolated for postprocessing {m/s}
+       DOUBLE PRECISION :: wfvel3(nmwfce) = film velocity z interpolated for postprocessing {m/s}
+c-----
+       DOUBLE PRECISION :: ufilm1(nmwfce) = film velocity x {m/s}
+       DOUBLE PRECISION :: ufilm2(nmwfce) = film velocity y {m/s}
+       DOUBLE PRECISION :: ufilm3(nmwfce) = film velocity z {m/s}
+c-----
+       DOUBLE PRECISION :: wpuls1(nmwfce) = film momentum x due to spray impact {kgm/s}
+       DOUBLE PRECISION :: wpuls2(nmwfce) = film momentum y due to spray impact {kgm/s}
+       DOUBLE PRECISION :: wpuls3(nmwfce) = film momentum z due to spray impact {kgm/s}
+c-----
+       DOUBLE PRECISION :: wfdens(nmwfce) = film density {kg/m3}
+       DOUBLE PRECISION :: wfvisc(nmwfce) = film viscosity
+       DOUBLE PRECISION :: wftemp(nmwfce) = film temperature {K}
+       DOUBLE PRECISION :: wftemo(nmwfce) = old time-step film temperature {K}
+       DOUBLE PRECISION :: wtwall(nmwfce) = original wall temperature  {K}
+       DOUBLE PRECISION :: wtsurf(nmwfce) = film surface {m2}
+c-----
+       DOUBLE PRECISION :: wdrtem(nmwfce) = spray droplet temperature {K}
+       DOUBLE PRECISION :: wdrmas(nmwfce) = spray droplet mass {kg}
+c-----
+       DOUBLE PRECISION :: wfsorm(nmwfce) = source terms of mass {kg/s}
+       DOUBLE PRECISION :: wfsore(nmwfce) = source terms of energy {J/s}
+       DOUBLE PRECISION :: wfeedt(nmwfce) = feeder time step  {s}
+c-----
+       DOUBLE PRECISION :: wscfed(nmwfce) = feeder source variable {kg/s}
+c-----
+       DOUBLE PRECISION :: wfentr(nmwfce) = film entrainment {kg/s/m2}
+       DOUBLE PRECISION :: wfevap(nmwfce) = film evaporation {kg/s/m2}
+c-----
+       DOUBLE PRECISION :: wfuser(nmwfce) = array reserved for user output {-}
+
+       DOUBLE PRECISION :: rwdumm(nmwfce) = real dummy array {-}
+       DOUBLE PRECISION :: rwdum1(nmwfce) = real dummy array 1 {-}
+       DOUBLE PRECISION :: rwdum2(nmwfce) = real dummy array 2 {-}
+       DOUBLE PRECISION :: rwdum3(nmwfce) = real dummy array 3 {-}
+       DOUBLE PRECISION :: rwdumr(nmwfce) = real dummy array 4 {-}
+       DOUBLE PRECISION :: rwdums(nmwfce) = real dummy array 5 {-}
+c-----
+       INTEGER :: iwdumm(nmwfce) = integer dummy array 1 {-}
+       INTEGER :: iwdumt(nmwfce) = integer dummy array 2 {-}
+c-----
+       DOUBLE PRECISION :: wrough(nmwfce) = wall roughness {-}
+c-----
+       DOUBLE PRECISION :: wmflow(nmwfce) = fluxes to neighbour cells {kg/m2/s}
+c-----------------------------------------------------------------------
+c-----face linker arrays : nmwfce*neighbours
+c-----------------------------------------------------------------------
+      INTEGER :: lpoint(0:nmwfce) = vertex pointer {-}
+      INTEGER :: lxtbnd(3,nmwfce) = linker boundary wallfilm face {-}
+      INTEGER :: lnxtxt(nmwfve)   = wall film neighbour face {-}
+      INTEGER :: lwfver(nmwfve)   = vertex field {-}
+c-----
+c=======================================================================
+      end module cwalmod
+c=======================================================================
+c-----
+c#######################################################################
+c#######################################################################
+c-----
+c=======================================================================
+       module catmod
+c=======================================================================
+c-----
+      INTEGER :: nspgas     = number gas species {-}
+      INTEGER :: nspsur     = number surface species {-}
+      INTEGER :: nspart     = number soot particle classes {-}
+      INTEGER :: nsptot     = number of total species {-}
+      INTEGER :: nreakt     = number of chemical reactions {-}
+      INTEGER :: nkinmo     = number of kinetic model sets {-}
+      INTEGER :: nscmax     = number of max surf cov dep entr {-}
+      INTEGER :: nblkp4     = number of porosity type 4 blocks {-}
+      INTEGER :: nblkpa     = number of all porosity blocks {-}
+      INTEGER :: ifmtrc     = flag mass trans coeff {-}
+      INTEGER :: ifdebm     = flag debug mode {-}
+      INTEGER :: ifsksc     = flag for skip source calc {-}
+      INTEGER :: ifimpl     = flag for imp solver call {-}
+      INTEGER :: ifdiff     = flag for diff coeff calc {-}
+      INTEGER :: nbsize     = block size for limex calls {-}
+      INTEGER :: ioptfl     = flag for iopt setup {-}
+      INTEGER :: ioptar(30) = limex array iop(1:30) for solver flags io {-}
+c-----
+      DOUBLE PRECISION :: limalf = upper limit alpha value {-}
+      DOUBLE PRECISION :: limbet = upper limit beta  value {-}
+      DOUBLE PRECISION :: sshhin = initial step size hh {s}
+      DOUBLE PRECISION :: rtolin = initial relative tolerance rtol {-}
+      DOUBLE PRECISION :: atolin = initial absolute tolerance atol {-}
+c-----
+      CHARACTER(LEN=20) :: cmname(nkinmo) = string array {-}
+      CHARACTER(LEN=20) :: csname(:)      = string array (currently not used) {-}
+      CHARACTER(LEN=20) :: cpname(nblkp4) = string array {-}
+c-----------------------------------------------------------------------
+c-----definition of interface cat/boundary
+c-----------------------------------------------------------------------
+      INTEGER :: nlb_cat         = number of bound cells pointing on catalysts {-}
+      INTEGER :: nsr_cat(0:nreg) = equivalent to nsr for catalyst cells {-}
+      INTEGER :: ner_cat(0:nreg) = equivalent to ner for catalyst cells {-}
+      INTEGER :: lb_cat(nlb_cat) = boundary cells pointing on catalysts {-}
+c-----------------------------------------------------------------------
+c-----array for catalyst definition replacing i_cellid
+c-----------------------------------------------------------------------
+		INTEGER :: i_catid(ncell) = catalyst identifier {-}
+c-----
+      DOUBLE PRECISION :: valini(numscl+nspsur+nspart) = initial values {-}
+      DOUBLE PRECISION :: pconci(nblkp4)               = initial particle concentr {kg/m3}
+c-----
+      DOUBLE PRECISION :: ratere(nreakt*ncell) = reaction rates reactions {kg/s}
+      DOUBLE PRECISION :: entsrc(ncell)        = enthalpy source {W}
+      DOUBLE PRECISION :: exmass(ncell)        = mass exchange ssmass, {kg/s}
+c-----
+      DOUBLE PRECISION :: ysurfs(numscl*ncell) = mole fraction near surf {-}
+      DOUBLE PRECISION :: ysurfo(numscl*ncell) = old mole fraction near surf {-}
+c-----
+      DOUBLE PRECISION :: ystors(nspsur*ncell) = stored spec surf coverage {-}
+      DOUBLE PRECISION :: ystoro(nspsur*ncell) = old stored spec surf coverage {-}
+      DOUBLE PRECISION :: ystorr(nspsur*ncell) = stored species rates {kmol/kg/s}
+c-----
+      DOUBLE PRECISION :: consot(min(1,nspart)*ncell) = soot concentration on catalyst {kg/m3}
+      DOUBLE PRECISION :: consoo(min(1,nspart)*ncell) = old soot concentation {kg/m3}
+      DOUBLE PRECISION :: consor(min(1,nspart)*ncell) = soot concentration rates {kg/s}
+c-----
+      DOUBLE PRECISION :: geosur(nblkp4) = geometric surface {m2/m3}
+      DOUBLE PRECISION :: reasur(nblkp4) = reaction surface {m2/m3}
+      DOUBLE PRECISION :: temini(nblkp4) = monolith initial temperature {K}
+      DOUBLE PRECISION :: sitden(nblkp4) = site density {kmole/m2}
+c-----
+      DOUBLE PRECISION :: porden(nblkp4) = density of solid {kg/m3}
+      DOUBLE PRECISION :: porocp(nblkp4) = cp of solid {j/kgk}
+      DOUBLE PRECISION :: porlam(nblkp4) = lamda of solid {w/mk]}
+      DOUBLE PRECISION :: poracf(nblkp4) = anisotropic cond. factor {-}
+c-----
+      INTEGER :: nblkin(nblkp4)     = number of por4 blk for entry plane definition {-}
+      INTEGER :: nkmpbl(nblkp4)     = number of kim model per por bl {-}
+      INTEGER :: nc_poro(nblkp4+1)  = old ncporo from fire {-}
+      INTEGER :: lc_poro(ncpor_tot) = old nlporo from fire {-}
+c-----
+      DOUBLE PRECISION :: coorbl(nblkp4*7)   = coordinates for blk entr planes {m}
+      DOUBLE PRECISION :: ahcmat(nblkp4*3,3) = anisotropic heat conduction matrix {-}
+c-----------------------------------------------------------------------
+c----- stochiometry and kinetics 
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: stocof(nsptot,nreakt)    = 2d stochiometric coeffic array {kg/kg}
+      DOUBLE PRECISION :: kincof(nkinmo,20,nreakt) = 3d kinetic coeffic array {-}
+      INTEGER    :: nscovd(nkinmo)           = number of surface cov dep entries per model {-}
+      INTEGER    :: iscent(nkinmo,nscmax*2)  = indices of surf cov entr {-}
+      DOUBLE PRECISION :: rscent(nkinmo,nscmax*3)  = real values of surf cov entr {-}
+c-----------------------------------------------------------------------
+c----- thermodyn coefficients
+c-----------------------------------------------------------------------
+c      DOUBLE PRECISION :: therdb(nsptot*20) = database thermdat values {-}
+c-----
+      DOUBLE PRECISION :: d_dum1(ncell) = double flag dummies {-}
+      DOUBLE PRECISION :: d_dum2(ncell) = double flag dummies {-}
+      DOUBLE PRECISION :: r_flgs(50)    = real flag dummies {-}
+      INTEGER    :: i_flgs(50)    = integer flag dummies {-}
+c-----------------------------------------------------------------------
+c-----solid temperature variable
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: tsolid(ncell)    = solid temperature {K}
+      DOUBLE PRECISION :: tsolio(ncell)    = old time-step solid temperature {K}
+      DOUBLE PRECISION :: tsoloo(ncell)    = old old time-step solid temperature {K}
+      DOUBLE PRECISION :: tsolir(:)        = array (currently not used) {-}
+      DOUBLE PRECISION :: tsolib(nbfac)    = solid temperature at boundary {K}
+      DOUBLE PRECISION :: s_solid(3,nface) = reduced solid surface vectors {-}
+c-----------------------------------------------------------------------
+c-----soot transport equations (active scalar)
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: sootts(nspart*ncell) = soot mass fraction {-}
+      DOUBLE PRECISION :: sootto(nspart*ncell) = old time-step soot mass fraction {-}
+      DOUBLE PRECISION :: sootoo(nspart*ncell) = old old time-step soot mass fraction {-}
+      DOUBLE PRECISION :: soottr(nspart*ncell) = soot mass fraction rate {kg/m3/s}
+      DOUBLE PRECISION :: soottb(nspart*nbfac) = soot mass fraction at boundary {-}
+c-----------------------------------------------------------------------
+c-----arrays for reaction solver
+c-----------------------------------------------------------------------
+      DOUBLE PRECISION :: beta1(numscl) = 
+      DOUBLE PRECISION :: rratel(nreakt*nbsize)    = reaction rate {kmol/m3/s}
+      DOUBLE PRECISION :: rrate_spl(nsptot*nbsize) = species reaction rate {kmol/m3/s}
+c-----
+      INTEGER :: iusrrt(nkinmo)        = flag (0,1) if user reaction rates are considered {-}
+      INTEGER :: istick(nkinmo)        = flag (0,1) if sticking coefficients are considered {-}
+      INTEGER :: iequil(nkinmo)        = flag (0,1) if equilibrium reactions are considered {-}
+      INTEGER :: ionoff(nkinmo,nreakt) = activation flag {-}
+      INTEGER :: iusraa(nkinmo,nreakt) = user rate activation {-}
+      INTEGER :: istica(nkinmo,nreakt) = sticking activation {-}
+      INTEGER :: iequia(nkinmo,nreakt) = equilibrium activation {-}
+c-----
+      INTEGER :: ipos(nsptot*nbsize)        =
+      DOUBLE PRECISION :: y_solve(nsptot*nbsize)  = initial species mole fraction for integration {-}
+      DOUBLE PRECISION :: ys_solve(nsptot*nbsize) = initial derivative {-}
+      DOUBLE PRECISION :: atol(nsptot*nbsize)     = absolute tolerance {-}
+      DOUBLE PRECISION :: rtol(nsptot*nbsize)     = relative tolerance {-}
+c-----
+      DOUBLE PRECISION :: eta_dum(nspsur,nreakt) =
+      DOUBLE PRECISION :: mu_dum(nspsur,nreakt)  =
+      DOUBLE PRECISION :: eps_dum(nspsur,nreakt) =
+c-----
+      DOUBLE PRECISION :: equ_k(nreakt*6)     = kinetic equations (currently not used) {-}
+      DOUBLE PRECISION :: rrate_back(nreakt)  = backward reaction rate {kmol/m3/s}
+      DOUBLE PRECISION :: sum_nu_gas(nreakt)  =
+      DOUBLE PRECISION :: sum_nu_stor(nreakt) =
+      DOUBLE PRECISION :: rsoot(nreakt)       = soot deposition ({kg/s} --> {kmol/m3/s})
+      DOUBLE PRECISION :: urat(nreakt)        = array (currently not used) {-}
+c-----
+c=======================================================================
+      end module catmod
+c=======================================================================
+c-----
+c#######################################################################
+c#######################################################################
+c-----
+c***********************************************************
+c-----     dynamic memory for 1d interfaces
+c***********************************************************
+c=======================================================================
+      module cs1mod
+c=======================================================================
+c-----
+      INTEGER :: numm1d  = total number of fluid links {-}
+      INTEGER :: numconc = number of concentration equations {-}
+      INTEGER :: nnmod1d = index offset for average concentrations {-}
+c-----------------------------------------------------------------------
+c-----temporary solution because mat is not yet avail. -
+c-----mat_m1d should be set to mat outside this module
+c-----------------------------------------------------------------------
+      INTEGER :: mat_m1d =  material index (= mat) {-}
+c-----
+      INTEGER :: nbmod1d(nreg+1)      = fluid link identifier {-}
+      INTEGER :: nrmod1d(nreg+1)      = region index (number) {-}
+      INTEGER :: ncmod1d(2,nreg+1)    = start/end face index of fluid link region {-}
+      INTEGER :: im1d_type(nreg+1)    = type specification (boost,promo,wave) {-}
+      INTEGER :: im1d_conc(nreg+1)    = currently not used {-}
+      INTEGER :: im1d_control(nreg+1) = currently not used {-}
+c-----
+      DOUBLE PRECISION :: avg_vel(nreg+1)  = average velocity {m/s}
+      DOUBLE PRECISION :: avg_u1(nreg+1)   = average x-cartesian velocity component {m/s}
+      DOUBLE PRECISION :: avg_u2(nreg+1)   = average y-cartesian velocity component {m/s}
+      DOUBLE PRECISION :: avg_u3(nreg+1)   = average z-cartesian velocity component {m/s}
+      DOUBLE PRECISION :: avg_pres(nreg+1) = average static pressure {Pa}
+      DOUBLE PRECISION :: avg_dens(nreg+1) = average density {kg/m3}
+      DOUBLE PRECISION :: avg_rgas(nreg+1) = average gas constant {J/kg/K}
+      DOUBLE PRECISION :: avg_temp(nreg+1) = averaged temperature {K}
+c-----
+      DOUBLE PRECISION :: avg_ps((nreg+1)*numscp+1) = average passive scalar (concentrations) {-}
+c-----
+      DOUBLE PRECISION :: avg_xn1(nreg+1)  = unit normal vector x {m}
+      DOUBLE PRECISION :: avg_xn2(nreg+1)  = unit normal vector y {m}
+      DOUBLE PRECISION :: avg_xn3(nreg+1)  = unit normal vector z {m}
+      DOUBLE PRECISION :: att_area(nreg+1) = attachment area {m2}
+      DOUBLE PRECISION :: xm1d_len(nreg+1) = overlap length {m}
+c-----
+      DOUBLE PRECISION :: rm1d_conc (nreg+1) = currently not used {-}
+c-----
+c=======================================================================
+      end module cs1mod
+c=======================================================================
+c-----
+c#######################################################################
+c#######################################################################
+c-----
+c=======================================================================
+c-----MODULE FOR EXTERNAL CONVECTION-RADIATION WALL BOUNDARY CONDITIONS
+      module ecr_mod
+c=======================================================================
+c-----
+      DOUBLE PRECISION :: stebol_ecr         = Stephan-Boltzmann constant {W/m2K4}
+c-----
+      INTEGER :: indxco_ecr(0:nreg)    = index list convection arrays {-}
+      INTEGER :: indxra_ecr(0:nreg)    = index list radiation  arrays {-}
+c-----
+c-----sized on the number of boundary cells where these conditions are applied
+c-----
+      DOUBLE PRECISION :: tcext_ecr(:) = environment temperature {K}
+      DOUBLE PRECISION :: hcext_ecr(:) = external heat transfer coefficient {W/m2K}
+      DOUBLE PRECISION :: trext_ecr(:) = environment radiation temperature {K}
+      DOUBLE PRECISION :: emext_ecr(:) = external wall emissivity {-}
+      DOUBLE PRECISION :: thres_ecr(:) = wall thermal resistance {m2K/W}
+c-----
+c=======================================================================
+      end module ecr_mod
+c=======================================================================
+c-----
+c#######################################################################
+c#######################################################################
+c-----
