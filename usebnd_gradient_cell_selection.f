@@ -1,7 +1,7 @@
 c=======================================================================
       SUBROUTINE usebnd(k,mph)
 c=======================================================================
-c     author:Hamid Anazadeh           
+c     author:John Aunna           
 c     date:30 October 2015             
 c     project:Simulation of Foam          
 c     project manager:Jamal Naser
